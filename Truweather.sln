@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TruweatherAPI", "TruweatherAPI\TruweatherAPI.csproj", "{8B3DAEE7-0402-4518-96E4-44E223E95CA9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TruweatherMobile", "TruweatherMobile\TruweatherMobile.csproj", "{64FE17CB-0643-4632-9CB8-2501BBEE8749}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TruweatherWeb", "TruweatherWeb\TruweatherWeb.csproj", "{907D2AD0-16EF-4C5C-933B-3ABB28F02734}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8B3DAEE7-0402-4518-96E4-44E223E95CA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B3DAEE7-0402-4518-96E4-44E223E95CA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B3DAEE7-0402-4518-96E4-44E223E95CA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B3DAEE7-0402-4518-96E4-44E223E95CA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64FE17CB-0643-4632-9CB8-2501BBEE8749}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64FE17CB-0643-4632-9CB8-2501BBEE8749}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64FE17CB-0643-4632-9CB8-2501BBEE8749}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64FE17CB-0643-4632-9CB8-2501BBEE8749}.Release|Any CPU.Build.0 = Release|Any CPU
+		{907D2AD0-16EF-4C5C-933B-3ABB28F02734}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{907D2AD0-16EF-4C5C-933B-3ABB28F02734}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{907D2AD0-16EF-4C5C-933B-3ABB28F02734}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{907D2AD0-16EF-4C5C-933B-3ABB28F02734}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
