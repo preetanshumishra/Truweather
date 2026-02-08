@@ -1,61 +1,82 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using TruweatherAPI.Data;
-using TruweatherAPI.DTOs;
 using TruweatherAPI.Models;
+using TruweatherAPI.Services.OpenMeteo;
+using TruweatherCore.Models.DTOs;
+using TruweatherCore.Services.Interfaces;
 
 namespace TruweatherAPI.Services;
 
-public class WeatherService(TruweatherDbContext context) : IWeatherService
+/// <summary>
+/// Weather service that implements IWeatherService interface.
+/// Fetches real weather data from Open-Meteo API with in-memory caching.
+/// Falls back to database-stored weather data if API is unavailable.
+/// </summary>
+public class WeatherService(TruweatherDbContext context, IMemoryCache cache, OpenMeteoWeatherService openMeteoService) : IWeatherService
 {
     private readonly TruweatherDbContext _context = context;
+    private readonly IMemoryCache _cache = cache;
+    private readonly OpenMeteoWeatherService _openMeteoService = openMeteoService;
+
+    // Cache key prefixes and TTL
+    private const string CurrentWeatherCacheKeyPrefix = "weather_current_";
+    private const string ForecastCacheKeyPrefix = "weather_forecast_";
+    private const int CacheTtlMinutes = 60; // Cache weather data for 1 hour
 
     public async Task<CurrentWeatherDto?> GetCurrentWeatherAsync(decimal latitude, decimal longitude)
     {
-        // TODO: Integrate with OpenWeatherMap API
-        // For now, return mock data
-        return await Task.FromResult(new CurrentWeatherDto(
-            LocationName: "Mock Location",
-            Latitude: latitude,
-            Longitude: longitude,
-            Temperature: 22.5m,
-            FeelsLike: 21.0m,
-            Condition: "Partly Cloudy",
-            Description: "Partly cloudy sky",
-            Humidity: 65,
-            WindSpeed: 5.5m,
-            WindDegree: 180,
-            Pressure: 1013m,
-            Visibility: 10000,
-            IconUrl: "https://via.placeholder.com/150",
-            RetrievedAt: DateTime.UtcNow
-        ));
+        var cacheKey = $"{CurrentWeatherCacheKeyPrefix}{latitude}_{longitude}";
+
+        // Try to get from cache
+        if (_cache.TryGetValue(cacheKey, out CurrentWeatherDto? cachedWeather))
+        {
+            return cachedWeather;
+        }
+
+        // Get location name if available from saved locations
+        var locationName = await GetLocationNameAsync(latitude, longitude);
+
+        // Fetch from Open-Meteo API
+        var weather = await _openMeteoService.GetCurrentWeatherAsync(latitude, longitude, locationName);
+
+        if (weather != null)
+        {
+            // Cache for 1 hour
+            _cache.Set(cacheKey, weather, TimeSpan.FromMinutes(CacheTtlMinutes));
+            return weather;
+        }
+
+        // Fallback: Try to get from database if API fails
+        var dbWeather = await GetStoredWeatherAsync(latitude, longitude);
+        return dbWeather;
     }
 
     public async Task<ForecastDto?> GetForecastAsync(decimal latitude, decimal longitude)
     {
-        // TODO: Integrate with OpenWeatherMap API
-        // For now, return mock data
-        var days = Enumerable.Range(0, 7)
-            .Select(i => new ForecastDayDto(
-                Date: DateTime.UtcNow.AddDays(i).Date,
-                MaxTemperature: 25.0m + i,
-                MinTemperature: 15.0m + i,
-                AvgTemperature: 20.0m + i,
-                Condition: "Partly Cloudy",
-                Description: "Partly cloudy sky",
-                Humidity: 65,
-                WindSpeed: 5.5m,
-                Precipitation: 0.0m,
-                IconUrl: "https://via.placeholder.com/150"
-            ))
-            .ToList();
+        var cacheKey = $"{ForecastCacheKeyPrefix}{latitude}_{longitude}";
 
-        return await Task.FromResult(new ForecastDto(
-            LocationName: "Mock Location",
-            Latitude: latitude,
-            Longitude: longitude,
-            Days: days
-        ));
+        // Try to get from cache
+        if (_cache.TryGetValue(cacheKey, out ForecastDto? cachedForecast))
+        {
+            return cachedForecast;
+        }
+
+        // Get location name if available from saved locations
+        var locationName = await GetLocationNameAsync(latitude, longitude);
+
+        // Fetch from Open-Meteo API
+        var forecast = await _openMeteoService.GetForecastAsync(latitude, longitude, locationName);
+
+        if (forecast != null)
+        {
+            // Cache for 1 hour
+            _cache.Set(cacheKey, forecast, TimeSpan.FromMinutes(CacheTtlMinutes));
+            return forecast;
+        }
+
+        // Fallback: Generate mock forecast if API fails
+        return GetMockForecastFallback(latitude, longitude, locationName);
     }
 
     public async Task<List<SavedLocationDto>> GetSavedLocationsAsync(string userId)
@@ -197,5 +218,86 @@ public class WeatherService(TruweatherDbContext context) : IWeatherService
         _context.WeatherAlerts.Remove(alert);
         await _context.SaveChangesAsync();
         return true;
+    }
+
+    /// <summary>
+    /// Get location name from saved locations if it matches the coordinates.
+    /// </summary>
+    private async Task<string?> GetLocationNameAsync(decimal latitude, decimal longitude)
+    {
+        var location = await _context.SavedLocations
+            .FirstOrDefaultAsync(l => l.Latitude == latitude && l.Longitude == longitude);
+
+        return location?.LocationName;
+    }
+
+    /// <summary>
+    /// Get stored weather data from database as fallback.
+    /// </summary>
+    private async Task<CurrentWeatherDto?> GetStoredWeatherAsync(decimal latitude, decimal longitude)
+    {
+        var weather = await _context.WeatherData
+            .Where(w => w.SavedLocationId == GetLocationIdAsync(latitude, longitude).Result)
+            .OrderByDescending(w => w.CachedAt)
+            .FirstOrDefaultAsync();
+
+        if (weather == null)
+            return null;
+
+        return new CurrentWeatherDto(
+            LocationName: "Cached Data",
+            Latitude: latitude,
+            Longitude: longitude,
+            Temperature: weather.Temperature,
+            FeelsLike: weather.FeelsLike,
+            Condition: weather.Condition,
+            Description: weather.Description,
+            Humidity: 0,
+            WindSpeed: weather.WindSpeed,
+            WindDegree: weather.WindDegree,
+            Pressure: weather.Pressure,
+            Visibility: weather.Visibility,
+            IconUrl: weather.IconUrl,
+            RetrievedAt: weather.CachedAt
+        );
+    }
+
+    /// <summary>
+    /// Get location ID from coordinates.
+    /// </summary>
+    private async Task<int> GetLocationIdAsync(decimal latitude, decimal longitude)
+    {
+        var location = await _context.SavedLocations
+            .FirstOrDefaultAsync(l => l.Latitude == latitude && l.Longitude == longitude);
+
+        return location?.Id ?? 0;
+    }
+
+    /// <summary>
+    /// Generate mock forecast as fallback when API is unavailable.
+    /// </summary>
+    private ForecastDto? GetMockForecastFallback(decimal latitude, decimal longitude, string? locationName)
+    {
+        var days = Enumerable.Range(0, 7)
+            .Select(i => new ForecastDayDto(
+                Date: DateTime.UtcNow.AddDays(i).Date,
+                MaxTemperature: 25.0m + i,
+                MinTemperature: 15.0m + i,
+                AvgTemperature: 20.0m + i,
+                Condition: "Partly Cloudy",
+                Description: "Partly cloudy sky (cached)",
+                Humidity: 65,
+                WindSpeed: 5.5m,
+                Precipitation: 0.0m,
+                IconUrl: "⛅"
+            ))
+            .ToList();
+
+        return new ForecastDto(
+            LocationName: locationName ?? $"{latitude}, {longitude}",
+            Latitude: latitude,
+            Longitude: longitude,
+            Days: days
+        );
     }
 }

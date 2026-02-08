@@ -6,160 +6,316 @@ A comprehensive weather application built with .NET 8 featuring real-time weathe
 
 ```
 Truweather/
-├── TruweatherAPI/           # ASP.NET Core backend API
-├── TruweatherWeb/           # Blazor web dashboard
-├── TruweatherMobile/        # .NET MAUI mobile app (iOS/Android)
-├── Truweather.sln           # Solution file
-└── global.json              # .NET SDK version (8.0.0)
+├── TruweatherAPI/     # ASP.NET Core 8.0 backend API
+├── TruweatherWeb/     # Blazor web dashboard
+├── TruweatherMobile/  # .NET MAUI mobile app (iOS/Android)
+└── Truweather.sln     # Solution file
 ```
 
-## Technology Stack
+## Tech Stack
 
-### Backend (TruweatherAPI)
-- **Framework**: ASP.NET Core 8.0
-- **Database**: SQL Server with Entity Framework Core
-- **Authentication**: JWT with Identity
-- **API Integration**: OpenWeatherMap/WeatherAPI
-- **Caching**: In-memory cache for weather data
-
-### Web Frontend (TruweatherWeb)
-- **Framework**: Blazor Web App (Server + WebAssembly)
-- **Styling**: Bootstrap with custom theming
-- **State Management**: Blazor cascading parameters + services
-
-### Mobile Frontend (TruweatherMobile)
-- **Framework**: .NET MAUI (iOS/Android)
-- **Navigation**: MAUI Shell navigation
-- **Location**: MAUI Location service + Maps
-- **Storage**: SQLite for offline support
-- **Styling**: XAML with MAUI ResourceDictionary
+| Component | Technology |
+|-----------|-----------|
+| **Backend** | ASP.NET Core 8.0, Entity Framework Core, SQL Server, JWT Auth |
+| **Web Frontend** | Blazor Web App, Bootstrap 5 |
+| **Mobile** | .NET MAUI (iOS/Android), SQLite |
+| **Database** | SQL Server with EF Core migrations |
 
 ## Features
 
-### Current Implementation
-- ✅ Project scaffolding and initial setup
-- ✅ Database models (User, Location, Weather, Alerts)
-- ✅ Entity Framework configuration
-- ✅ NuGet dependencies installed
+### ✅ Completed
+- Backend API with JWT authentication
+- 5 database models with relationships
+- Auth endpoints (register, login, refresh, logout)
+- Weather endpoints (current, forecast, locations, alerts)
+- Blazor web project scaffold
+- MAUI mobile project scaffold
 
-### In Development
-- Authentication & Authorization (JWT)
-- Weather API endpoints
-- Location service integration
-- Weather alert system
+### 🔄 In Development
+- Weather API integration (OpenWeatherMap)
+- Web dashboard UI
+- Mobile app screens
 - Offline caching
-- Web dashboard
-- Mobile app UI
+- Alert notifications
 
 ## Prerequisites
 
-### Development Environment
-- **.NET 8.0 SDK** (or higher)
-- **Visual Studio 2022** (latest) OR **Visual Studio Code** with C# extensions
-- **SQL Server Express** (local development) or **Azure SQL Database**
-- **Node.js 18+** (for frontend tooling if needed)
+- **.NET 8.0 SDK** or higher
+- **Visual Studio 2022** or **VS Code** with C# extensions
+- **SQL Server Express** (local) or **Azure SQL Database**
+- **Git**
 
-### For Azure Deployment
-- **Azure Subscription** (free trial available)
-- **Azure CLI** installed locally
-- **GitHub account** with this repository
+## Quick Start
 
-## Local Development Setup
-
-### 1. Clone and Restore
-
+### 1. Restore and Build
 ```bash
 cd Truweather
 dotnet restore
+dotnet build
 ```
 
-### 2. Configure SQL Server
+### 2. Configure Database
 
-**Option A: Local SQL Server Express**
+Update `TruweatherAPI/appsettings.Development.json`:
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=.;Database=truweather_dev;Integrated Security=true;Encrypt=false;"
+  }
+}
+```
+
+### 3. Run Development Servers
+
+**Backend API** (Terminal 1)
 ```bash
-# Update connection string in TruweatherAPI/appsettings.Development.json
-# Default: Server=.;Database=truweather_dev;Integrated Security=true;
+cd TruweatherAPI && dotnet run
+# Swagger: http://localhost:5000/swagger
 ```
 
-**Option B: Azure SQL Database**
+**Web Dashboard** (Terminal 2)
 ```bash
-# Update connection string in TruweatherAPI/appsettings.Development.json
-# Server=<server>.database.windows.net;Initial Catalog=truweather;User ID=<user>;Password=<password>;
+cd TruweatherWeb && dotnet run
+# App: https://localhost:5001
 ```
 
-### 3. Apply Database Migrations
-
-```bash
-cd TruweatherAPI
-dotnet ef database update
-```
-
-### 4. Run Development Servers
-
-**Terminal 1 - Backend API (http://localhost:5000)**
-```bash
-cd TruweatherAPI
-dotnet run
-# Swagger docs: http://localhost:5000/swagger
-```
-
-**Terminal 2 - Web Dashboard (http://localhost:5001)**
-```bash
-cd TruweatherWeb
-dotnet run
-```
-
-**Terminal 3 - Mobile App**
+**Mobile** (Terminal 3)
 ```bash
 cd TruweatherMobile
 dotnet build -t:Run -f net8.0-ios    # iOS Simulator
-# OR
 dotnet build -t:Run -f net8.0-android # Android Emulator
 ```
 
-## API Endpoints (Swagger Available at `/swagger`)
+## Database Setup
+
+### For macOS - SQL Server in Docker
+```bash
+docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=YourPassword@123' \
+  -p 1433:1433 -d mcr.microsoft.com/mssql/server
+```
+
+Update connection string to use Docker SQL Server:
+```
+Server=localhost,1433;Database=truweather_dev;User ID=sa;Password=YourPassword@123;Encrypt=false;
+```
+
+### Database Migrations
+
+The API automatically applies migrations on startup. To manually manage:
+
+```bash
+cd TruweatherAPI
+
+# Create new migration
+dotnet ef migrations add MigrationName
+
+# Apply migrations
+dotnet ef database update
+
+# Revert last migration
+dotnet ef migrations remove
+```
+
+## API Endpoints
+
+All endpoints documented in Swagger at `/swagger` when running the API.
 
 ### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login with credentials
+- `POST /api/auth/register` - Create new user account
+- `POST /api/auth/login` - Login with email/password
 - `POST /api/auth/refresh` - Refresh JWT token
 - `POST /api/auth/logout` - Logout user
 
-### Weather Data
-- `GET /api/weather/current/{latitude}/{longitude}` - Current weather
-- `GET /api/weather/forecast/{latitude}/{longitude}` - 7-day forecast
-- `GET /api/weather/locations` - User's saved locations
+### Weather (Requires Authorization)
+- `GET /api/weather/current?latitude=X&longitude=Y` - Current weather
+- `GET /api/weather/forecast?latitude=X&longitude=Y` - 7-day forecast
+- `GET /api/weather/locations` - Get user's saved locations
 - `POST /api/weather/locations` - Add saved location
+- `PUT /api/weather/locations/{id}` - Update location
+- `DELETE /api/weather/locations/{id}` - Delete location
+- `GET /api/weather/alerts` - Get weather alerts
+- `POST /api/weather/alerts` - Create alert
+- `PUT /api/weather/alerts/{id}` - Update alert
+- `DELETE /api/weather/alerts/{id}` - Delete alert
 
-### Alerts
-- `GET /api/alerts` - Get weather alerts for user
-- `POST /api/alerts` - Create weather alert
-- `DELETE /api/alerts/{id}` - Delete alert
+## Configuration
 
-### User
-- `GET /api/user/profile` - Get user profile
-- `PUT /api/user/preferences` - Update preferences
-- `DELETE /api/user/account` - Delete account
+### appsettings.json (API)
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=.;Database=truweather_dev;Integrated Security=true;Encrypt=false;"
+  },
+  "Jwt": {
+    "Secret": "your-secret-key-minimum-32-characters",
+    "Issuer": "https://truweather.com",
+    "Audience": "truweather-app",
+    "ExpirationMinutes": 60
+  },
+  "WeatherApi": {
+    "Provider": "OpenWeatherMap",
+    "ApiKey": "your-api-key-here",
+    "BaseUrl": "https://api.openweathermap.org"
+  }
+}
+```
 
-## GitHub Actions CI/CD Pipeline
+## Project Structure Details
 
-### Workflow: `.github/workflows/deploy.yml`
+```
+TruweatherAPI/
+├── Controllers/         # API endpoints (Auth, Weather)
+├── Models/             # Database entities (User, Location, Weather, Alert, Preferences)
+├── Services/           # Business logic (Auth, Weather)
+├── DTOs/               # Data transfer objects
+├── Data/               # DbContext configuration
+├── appsettings.json    # App settings
+└── Program.cs          # Startup configuration
 
-Triggers on:
-- Push to `main` branch
-- Pull requests to `main`
+TruweatherWeb/
+├── Components/         # Blazor components
+├── Pages/              # Blazor pages (Home, Counter, Weather)
+├── wwwroot/            # Static assets
+└── Program.cs          # Startup configuration
 
-Steps:
-1. **Checkout code** - Clone repository
-2. **Setup .NET 8** - Install SDK
-3. **Restore dependencies** - `dotnet restore`
-4. **Build solution** - `dotnet build --configuration Release`
-5. **Run tests** - `dotnet test` (when added)
-6. **Publish** - `dotnet publish -c Release -o ./publish`
-7. **Deploy to Azure** - Push to Azure App Service
+TruweatherMobile/
+├── Platforms/          # Platform-specific code (iOS/Android)
+├── Resources/          # App resources and styles
+├── Pages/              # MAUI pages
+└── MauiProgram.cs      # Mobile app startup
+```
+
+## Important Notes
+
+### JWT Security
+- Current default secret in appsettings.json is for **DEVELOPMENT ONLY**
+- Must be changed for production (minimum 32 characters)
+- Should be stored in Azure Key Vault for production
+- Token expires in 60 minutes (configurable)
+
+### Database
+- Uses SQL Server-specific decimal precision
+- Relationships configured with cascade delete
+- Indexed queries on UserId and SavedLocationId for performance
+- Ready for migration to production
+
+### CORS
+- Currently allows all origins (development only)
+- Must be restricted to specific domains in production
+- Update in `TruweatherAPI/Program.cs` before deployment
+
+### Weather API Integration
+- Currently returns mock data
+- Ready to integrate with OpenWeatherMap or WeatherAPI.com
+- Service interface prepared in `IWeatherService`
+
+### Mobile Development
+Requires .NET workloads installation:
+
+**macOS:**
+```bash
+dotnet workload install ios android
+dotnet workload restore
+```
+
+**Windows:**
+```bash
+dotnet workload install android windows
+dotnet workload restore
+```
+
+## Troubleshooting
+
+### Database Connection Failed
+```bash
+# Ensure SQL Server is running
+# Check connection string in appsettings.Development.json
+# For Docker: verify container is running with: docker ps
+```
+
+### Build Errors
+```bash
+dotnet clean
+dotnet restore
+dotnet build
+```
+
+### Port Already in Use
+Update port in `Properties/launchSettings.json` in respective project, or:
+```bash
+lsof -i :5000  # Find process using port 5000
+kill -9 <PID>  # Kill the process
+```
+
+### MAUI Build Issues
+```bash
+# Restore missing workloads
+dotnet workload restore
+
+# Clean and rebuild
+dotnet clean
+dotnet build
+```
+
+### Swagger Not Appearing
+- Ensure running in development mode
+- Check appsettings.Development.json
+- Restart the API server
+
+## Next Steps
+
+1. **Integrate Weather API**
+   - Get API key from OpenWeatherMap.com or WeatherAPI.com
+   - Implement real API calls in `WeatherService`
+   - Add caching layer for performance
+
+2. **Develop Web Dashboard**
+   - Create Blazor components for weather display
+   - Add HttpClient service for API communication
+   - Build location management UI
+   - Add alert configuration interface
+
+3. **Develop Mobile App**
+   - Create MAUI pages for home, weather details, locations
+   - Add location permission handling
+   - Implement offline support with SQLite
+   - Add push notifications for alerts
+
+4. **Testing**
+   - Add unit tests for services
+   - Add integration tests for API endpoints
+   - Add component tests for Blazor pages
+
+5. **CI/CD & Deployment**
+   - Set up GitHub Actions workflows
+   - Configure Azure App Service deployment
+   - Set up database migrations in pipeline
+   - Configure environment-specific settings
+
+6. **Production Preparation**
+   - Change JWT secret
+   - Configure CORS properly
+   - Set up logging and monitoring
+   - Configure environment variables
+   - Add error handling and logging
+
+## GitHub Actions & Azure Deployment
+
+### GitHub Actions Setup
+Create `.github/workflows/build.yml` for:
+- Build and test on push to main
+- Deploy to Azure App Service
+- Run database migrations
+
+### Azure Deployment
+Requires:
+- Azure subscription
+- SQL Database
+- App Service for API
+- App Service for Web
+- GitHub Secrets for deployment credentials
 
 ### Required GitHub Secrets
-
 ```
 AZURE_SUBSCRIPTION_ID        # Your Azure subscription ID
 AZURE_RESOURCE_GROUP         # Azure resource group name
@@ -169,239 +325,15 @@ AZURE_PUBLISH_PROFILE_API    # Download from Azure App Service
 AZURE_PUBLISH_PROFILE_WEB    # Download from Azure App Service
 ```
 
-### Download Publish Profile from Azure
+## Git Configuration
 
-1. Navigate to Azure Portal → App Service → Overview
-2. Click "Get publish profile"
-3. Save the XML file
-4. Add to GitHub Secrets as base64:
-   ```bash
-   cat publish-profile.xml | base64 | pbcopy
-   # Paste in GitHub Secrets
-   ```
-
-## Azure Deployment
-
-### Prerequisites
-- Azure subscription with resource group
-- SQL Database created in Azure
-- Two App Service plans (one for API, one for Web)
-
-### Step 1: Create Resource Group
-
-```bash
-az group create --name TruweatherRG --location eastus
-```
-
-### Step 2: Create SQL Database
-
-```bash
-az sql server create \
-  --resource-group TruweatherRG \
-  --name truweather-server \
-  --admin-user truadmin \
-  --admin-password YourSecurePassword123!
-
-az sql db create \
-  --resource-group TruweatherRG \
-  --server truweather-server \
-  --name truweather_db \
-  --service-objective S0
-```
-
-### Step 3: Create App Services
-
-**For API:**
-```bash
-az appservice plan create \
-  --name TruweatherAPIPlan \
-  --resource-group TruweatherRG \
-  --sku B1 --is-linux
-
-az webapp create \
-  --resource-group TruweatherRG \
-  --plan TruweatherAPIplan \
-  --name truweather-api \
-  --runtime "DOTNETCORE|8.0"
-```
-
-**For Web:**
-```bash
-az appservice plan create \
-  --name TruweatherWebPlan \
-  --resource-group TruweatherRG \
-  --sku B1 --is-linux
-
-az webapp create \
-  --resource-group TruweatherRG \
-  --plan TruweatherWebPlan \
-  --name truweather-web \
-  --runtime "DOTNETCORE|8.0"
-```
-
-### Step 4: Configure Connection Strings
-
-```bash
-# For API
-az webapp config connection-string set \
-  --resource-group TruweatherRG \
-  --name truweather-api \
-  --settings TruweatherDb="Server=tcp:truweather-server.database.windows.net,1433;Initial Catalog=truweather_db;..." \
-  --connection-string-type SQLServer
-```
-
-### Step 5: Configure Environment Variables
-
-```bash
-az webapp config appsettings set \
-  --resource-group TruweatherRG \
-  --name truweather-api \
-  --settings \
-    JwtSecret="your-secret-key" \
-    WeatherApiKey="your-openweathermap-key" \
-    AllowedOrigins="https://truweather-web.azurewebsites.net"
-```
-
-### Step 6: Push to GitHub and Trigger Deployment
-
-```bash
-git add .
-git commit -m "Initial Truweather project setup"
-git push origin main
-```
-
-GitHub Actions will automatically build and deploy both API and Web.
-
-## Testing
-
-### Run All Tests
-```bash
-dotnet test Truweather.sln
-```
-
-### Run Specific Project Tests
-```bash
-dotnet test TruweatherAPI/TruweatherAPI.csproj
-dotnet test TruweatherWeb/TruweatherWeb.csproj
-```
-
-### With Coverage
-```bash
-dotnet test Truweather.sln --collect:"XPlat Code Coverage"
-```
-
-## Database Migrations
-
-### Create New Migration
-```bash
-cd TruweatherAPI
-dotnet ef migrations add AddNewFeature
-```
-
-### Update Database
-```bash
-dotnet ef database update
-```
-
-### Revert Last Migration
-```bash
-dotnet ef migrations remove
-```
-
-## Configuration
-
-### appsettings.json Structure
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=.;Database=truweather_dev;Integrated Security=true;"
-  },
-  "Jwt": {
-    "Secret": "your-secret-key-min-32-chars",
-    "Issuer": "https://truweather.com",
-    "Audience": "truweather-app",
-    "ExpirationMinutes": 60
-  },
-  "WeatherApi": {
-    "Provider": "OpenWeatherMap",
-    "ApiKey": "your-api-key",
-    "BaseUrl": "https://api.openweathermap.org"
-  },
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft": "Warning"
-    }
-  }
-}
-```
-
-## Troubleshooting
-
-### Connection String Issues
-- Verify SQL Server is running: `sqlcmd -S . -Q "SELECT @@VERSION"`
-- Check connection in appsettings: `"Server=.;Database=truweather_dev;..."`
-- For Azure: Ensure firewall allows your IP
-
-### Migration Errors
-```bash
-# Clear pending migrations
-dotnet ef migrations remove --force
-
-# Recreate from scratch
-dotnet ef database drop
-dotnet ef database update
-```
-
-### GitHub Actions Deployment Failures
-1. Check Azure credentials in GitHub Secrets
-2. Verify publish profile format (base64 encoded)
-3. Ensure app names match configuration
-4. Check Azure quota/limits
-
-## Project Roadmap
-
-- [x] Project scaffolding
-- [ ] Database schema and models
-- [ ] JWT authentication
-- [ ] Weather API integration
-- [ ] Alert system
-- [ ] Web dashboard
-- [ ] Mobile app UI
-- [ ] Offline caching
-- [ ] Unit tests
-- [ ] Integration tests
-- [ ] Azure deployment
-- [ ] CI/CD pipeline
-
-## Environment Variables
-
-Create `.env` files in each project (never commit):
-
-**TruweatherAPI/.env**
-```
-ConnectionStrings__DefaultConnection=Server=.;Database=truweather_dev;Integrated Security=true;
-JwtSecret=your-secret-key-min-32-chars
-WeatherApiKey=your-openweathermap-api-key
-AllowedOrigins=http://localhost:5001,http://localhost:5002
-```
-
-## Contributing
-
-1. Create feature branch: `git checkout -b feature/feature-name`
-2. Commit changes: `git commit -m "Brief description"`
-3. Push to branch: `git push origin feature/feature-name`
-4. Open Pull Request
+- **.gitignore** - Excludes build artifacts, IDE files, dependencies
+- **.gitattributes** - Ensures consistent line endings across platforms
 
 ## License
 
-MIT License - Feel free to use for personal or commercial projects.
+MIT License
 
-## Support
+## Author
 
-For issues, feature requests, or documentation improvements, please open an issue on GitHub.
-
----
-
-**Last Updated**: November 2024
-**Maintainer**: Preetanshu Mishra
+Preetanshu Mishra

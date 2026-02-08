@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using TruweatherAPI.DTOs;
+using TruweatherCore.Models.DTOs;
 using TruweatherAPI.Services;
 
 namespace TruweatherAPI.Controllers;

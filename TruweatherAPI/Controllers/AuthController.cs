@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using TruweatherAPI.DTOs;
+using TruweatherCore.Models.DTOs;
 using TruweatherAPI.Services;
 
 namespace TruweatherAPI.Controllers;

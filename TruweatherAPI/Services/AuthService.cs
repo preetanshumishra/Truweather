@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using TruweatherAPI.DTOs;
+using TruweatherCore.Models.DTOs;
 using TruweatherAPI.Models;
 
 namespace TruweatherAPI.Services;

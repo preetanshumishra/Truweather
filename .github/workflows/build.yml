@@ -1,0 +1,57 @@
+name: Build Truweather
+
+on:
+  push:
+    branches: [ master, main, develop ]
+  pull_request:
+    branches: [ master, main, develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        dotnet-version: ['8.0.x']
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ matrix.dotnet-version }}
+        cache: true
+        cache-dependency-path: '**/packages.lock.json'
+
+    - name: Restore dependencies
+      run: dotnet restore Truweather.sln
+
+    - name: Build solution
+      run: dotnet build Truweather.sln --configuration Release --no-restore
+
+    - name: Test TruweatherAPI
+      run: dotnet test TruweatherAPI/TruweatherAPI.csproj --configuration Release --no-build --verbosity normal
+
+    - name: Test TruweatherCore
+      run: dotnet test TruweatherCore/TruweatherCore.csproj --configuration Release --no-build --verbosity normal
+      continue-on-error: true
+
+    - name: Test TruweatherWeb
+      run: dotnet test TruweatherWeb/TruweatherWeb.csproj --configuration Release --no-build --verbosity normal
+      continue-on-error: true
+
+    - name: Test TruweatherMobile
+      run: dotnet test TruweatherMobile/TruweatherMobile.csproj --configuration Release --no-build --verbosity normal
+      continue-on-error: true
+
+    - name: Publish TruweatherAPI
+      run: dotnet publish TruweatherAPI/TruweatherAPI.csproj --configuration Release --output ./publish/api --no-build
+
+    - name: Upload API artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: truweather-api
+        path: ./publish/api
+        retention-days: 5

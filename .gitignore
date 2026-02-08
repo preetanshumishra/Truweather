@@ -1,0 +1,236 @@
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio cache/options directory
+.vs/
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Rider
+.idea/
+*.sln.iml
+.rider/
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Local environment files
+.env
+.env.local
+.env.*.local
+appsettings.Development.json
+appsettings.local.json
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+
+# NUnit
+*.VisualState.xml
+TestResult.xml
+nunit-*.xml
+
+# Build Results of an ATL Project
+[Dd]ebugPS/
+[Rr]eleasePS/
+dlldata.c
+
+# Benchmark Results
+BenchmarkDotNet.Artifacts/
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# ASP.NET Core
+wwwroot/node_modules/
+appsettings.json
+appsettings.*.json
+
+# Files built by Visual Studio
+*.vcxproj.filters
+*.vcxproj.user
+
+# Chutzpah Test files
+*.coverage
+*.coveragexml
+
+# Publish Web Output
+[Pp]ublishProfiles/
+*.azurePubxml
+*.pubxml
+*.publishproj
+
+# Web workbench (sass)
+.sass-cache/
+
+# Installshield output folder
+[Ee]xpress/
+
+# DocProject is a documentation generator add-in
+DocProject/buildhelp/
+DocProject/Help/*.HxT
+DocProject/Help/*.HxC
+DocProject/Help/*.hhc
+DocProject/Help/*.hhk
+DocProject/Help/*.hhp
+DocProject/Help/Html2
+DocProject/Help/html
+
+# Click-Once directory
+publish/
+
+# Publish Web Output
+[Pp]ublishProfiles/
+*.[Pp]ubxml
+*.azurePubxml
+
+# NuGet Packages
+*.nupkg
+*.nupkg.metadata
+*.snupkg
+
+# The packages folder can be ignored because of Package Restore
+**/packages/*
+
+# Visual Studio cache files
+# files ending in .cache can be ignored
+*.[Cc]ache
+# but keep track of directories ending in .cache
+!?*.[Cc]ache/
+
+# Others
+ClientBin/
+~$*
+*~
+*.dbmdl
+*.dbproj.schemaview
+*.jfm
+*.pfx
+*.publishsettings
+orleans.codegen.cs
+
+# Including strong name files can present a security risk
+# (https://github.com/github/gitignore/pull/2483#issue-259490424)
+#*.snk
+
+# Since there are multiple workflows, uncomment next line to ignore bower_components
+# (https://github.com/github/gitignore/pull/1529#issuecomment-104110877)
+#bower_components/
+
+# RIA/Silverlight projects
+Generated_Code/
+
+# Backup & swp files
+*.bak
+*.swp
+*.swo
+*~
+
+# Sass/SCSS
+.sass-cache/
+*.css.map
+
+# Temporary files
+*.tmp
+*.temp
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IntelliJ
+out/
+.gradle/
+
+# Android Studio
+.gradle
+.idea
+local.properties
+*.iml
+
+# Xcode
+build/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcworkspace/xcuserdata/
+*.xcworkspace/xcshareddata/
+DerivedData/
+
+# npm
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Misc
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test results
+TestResults/
+.coverage/
+opencover.xml
+
+# BDD/Specflow
+bin/
+
+# Azure
+.PublishSettings
+PublishSettings.xml
+
+# Local database
+*.mdf
+*.ldf
+*.ndf
+
+# Mac .DS_Store files
+.DS_Store
+
+# Rider
+.idea/
+*.sln.iml
+out/
+
+# vscode
+.vscode/
+.vscode/launch.json
+.vscode/settings.json
+.vscode/tasks.json
+
+# Misc
+dist/
+build/
+.env.local
+.env.*.local

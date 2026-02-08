@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TruweatherMobile", "Truweat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TruweatherWeb", "TruweatherWeb\TruweatherWeb.csproj", "{907D2AD0-16EF-4C5C-933B-3ABB28F02734}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TruweatherCore", "TruweatherCore\TruweatherCore.csproj", "{CCA24DA8-9FAB-4904-BC5D-7EBD72CE77C4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{907D2AD0-16EF-4C5C-933B-3ABB28F02734}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{907D2AD0-16EF-4C5C-933B-3ABB28F02734}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{907D2AD0-16EF-4C5C-933B-3ABB28F02734}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CCA24DA8-9FAB-4904-BC5D-7EBD72CE77C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCA24DA8-9FAB-4904-BC5D-7EBD72CE77C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCA24DA8-9FAB-4904-BC5D-7EBD72CE77C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCA24DA8-9FAB-4904-BC5D-7EBD72CE77C4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
