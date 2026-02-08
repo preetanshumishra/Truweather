@@ -1,0 +1,96 @@
+@page "/register"
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Register - Truweather</PageTitle>
+
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h3 class="text-center mb-4">Create Account</h3>
+
+                    <ErrorAlert Message="@_error" OnDismiss="() => _error = null" />
+
+                    <EditForm Model="_model" OnValidSubmit="HandleRegister" FormName="register">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-3">
+                            <label for="fullName" class="form-label">Full Name</label>
+                            <InputText id="fullName" class="form-control" @bind-Value="_model.FullName" placeholder="John Doe" />
+                            <ValidationMessage For="() => _model.FullName" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <InputText id="email" class="form-control" @bind-Value="_model.Email" placeholder="you@example.com" />
+                            <ValidationMessage For="() => _model.Email" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <InputText id="password" type="password" class="form-control" @bind-Value="_model.Password" placeholder="At least 8 characters" />
+                            <ValidationMessage For="() => _model.Password" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">Confirm Password</label>
+                            <InputText id="confirmPassword" type="password" class="form-control" @bind-Value="_model.ConfirmPassword" placeholder="Re-enter password" />
+                            <ValidationMessage For="() => _model.ConfirmPassword" />
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100" disabled="@_loading">
+                            @if (_loading)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            }
+                            Create Account
+                        </button>
+                    </EditForm>
+
+                    <hr />
+                    <p class="text-center text-muted mb-0">
+                        Already have an account? <a href="/login">Sign in</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegisterRequest _model = new();
+    private string? _error;
+    private bool _loading;
+
+    private async Task HandleRegister()
+    {
+        _error = null;
+        _loading = true;
+
+        try
+        {
+            var result = await AuthService.RegisterAsync(
+                _model.Email, _model.Password, _model.ConfirmPassword, _model.FullName);
+
+            if (result.Success)
+            {
+                Navigation.NavigateTo("/", forceLoad: true);
+            }
+            else
+            {
+                _error = result.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

@@ -6,9 +6,9 @@ namespace TruweatherCore.Utilities;
 public static class WindSpeedConverter
 {
     // Conversion factors to m/s
-    private const decimal KmhToMs = 1 / 3.6m;
-    private const decimal MphToMs = 1 / 2.237m;
-    private const decimal KnotsToMs = 1 / 1.944m;
+    private const decimal KmhToMsFactor = 1 / 3.6m;
+    private const decimal MphToMsFactor = 1 / 2.237m;
+    private const decimal KnotsToMsFactor = 1 / 1.944m;
 
     /// <summary>
     /// Convert meters per second to kilometers per hour.
@@ -39,7 +39,7 @@ public static class WindSpeedConverter
     /// </summary>
     public static decimal KmhToMs(decimal kmh)
     {
-        return kmh * KmhToMs;
+        return kmh * KmhToMsFactor;
     }
 
     /// <summary>
@@ -47,7 +47,7 @@ public static class WindSpeedConverter
     /// </summary>
     public static decimal MphToMs(decimal mph)
     {
-        return mph * MphToMs;
+        return mph * MphToMsFactor;
     }
 
     /// <summary>
@@ -55,7 +55,7 @@ public static class WindSpeedConverter
     /// </summary>
     public static decimal KnotsToMs(decimal knots)
     {
-        return knots * KnotsToMs;
+        return knots * KnotsToMsFactor;
     }
 
     /// <summary>

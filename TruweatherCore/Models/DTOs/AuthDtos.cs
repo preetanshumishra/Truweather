@@ -2,22 +2,23 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TruweatherCore.Models.DTOs;
 
-public record RegisterRequest(
+public class RegisterRequest
+{
     [Required(ErrorMessage = "Email is required")]
     [EmailAddress(ErrorMessage = "Email format is invalid")]
-    string Email,
+    public string Email { get; set; } = "";
 
     [Required(ErrorMessage = "Password is required")]
     [MinLength(8, ErrorMessage = "Password must be at least 8 characters")]
-    string Password,
+    public string Password { get; set; } = "";
 
     [Required(ErrorMessage = "Password confirmation is required")]
     [Compare("Password", ErrorMessage = "Passwords do not match")]
-    string ConfirmPassword,
+    public string ConfirmPassword { get; set; } = "";
 
     [MaxLength(100, ErrorMessage = "Full name must not exceed 100 characters")]
-    string? FullName = null
-);
+    public string? FullName { get; set; }
+}
 
 public record LoginRequest(
     [Required(ErrorMessage = "Email is required")]

@@ -49,3 +49,43 @@ h1:focus {
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
+
+/* Weather cards */
+.weather-card {
+    border: none;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.weather-card .display-3 {
+    color: #1b6ec2;
+}
+
+/* Forecast cards */
+.forecast-card {
+    border: none;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease;
+}
+
+.forecast-card:hover {
+    transform: translateY(-2px);
+}
+
+/* Auth cards */
+.card.shadow-sm .card-body h3 {
+    color: #1b6ec2;
+}
+
+/* Dashboard grid */
+.row.g-2 > .col-lg {
+    flex: 1 0 0%;
+}
+
+/* Table enhancements */
+.table th {
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6c757d;
+}

@@ -159,7 +159,7 @@ public class HttpClientWrapper
         {
             try
             {
-                var content = await response.Content.ReadAsAsync<T>();
+                var content = await response.Content.ReadFromJsonAsync<T>();
                 return content ?? throw new ApiException("Response body was null");
             }
             catch (HttpRequestException ex)

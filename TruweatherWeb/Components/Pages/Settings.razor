@@ -1,0 +1,176 @@
+@page "/settings"
+@attribute [Authorize]
+@inject HttpClientWrapper Http
+@rendermode InteractiveServer
+
+<PageTitle>Settings - Truweather</PageTitle>
+
+<h3 class="mb-4">Settings</h3>
+
+<ErrorAlert Message="@_error" OnDismiss="() => _error = null" />
+
+@if (_success != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @_success
+        <button type="button" class="btn-close" @onclick="() => _success = null"></button>
+    </div>
+}
+
+@if (_loading)
+{
+    <LoadingSpinner />
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            <EditForm Model="_model" OnValidSubmit="SaveSettings" FormName="settings">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Temperature Unit</label>
+                        <InputSelect class="form-select" @bind-Value="_model.TemperatureUnit">
+                            <option value="Celsius">Celsius</option>
+                            <option value="Fahrenheit">Fahrenheit</option>
+                            <option value="Kelvin">Kelvin</option>
+                        </InputSelect>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Wind Speed Unit</label>
+                        <InputSelect class="form-select" @bind-Value="_model.WindSpeedUnit">
+                            <option value="ms">m/s</option>
+                            <option value="kmh">km/h</option>
+                            <option value="mph">mph</option>
+                            <option value="knots">knots</option>
+                        </InputSelect>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Theme</label>
+                        <InputSelect class="form-select" @bind-Value="_model.Theme">
+                            <option value="Light">Light</option>
+                            <option value="Dark">Dark</option>
+                        </InputSelect>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Language</label>
+                        <InputSelect class="form-select" @bind-Value="_model.Language">
+                            <option value="en">English</option>
+                            <option value="es">Spanish</option>
+                            <option value="fr">French</option>
+                            <option value="de">German</option>
+                            <option value="it">Italian</option>
+                            <option value="pt">Portuguese</option>
+                            <option value="ru">Russian</option>
+                            <option value="zh">Chinese</option>
+                            <option value="ja">Japanese</option>
+                            <option value="ko">Korean</option>
+                        </InputSelect>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Update Frequency (minutes)</label>
+                        <InputNumber class="form-control" @bind-Value="_model.UpdateFrequencyMinutes" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-check mt-4">
+                            <InputCheckbox class="form-check-input" @bind-Value="_model.EnableNotifications" />
+                            <label class="form-check-label">Enable Notifications</label>
+                        </div>
+                        <div class="form-check mt-2">
+                            <InputCheckbox class="form-check-input" @bind-Value="_model.EnableEmailAlerts" />
+                            <label class="form-check-label">Enable Email Alerts</label>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary mt-4" disabled="@_saving">
+                    @if (_saving)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                    }
+                    Save Settings
+                </button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    private SettingsModel _model = new();
+    private string? _error;
+    private string? _success;
+    private bool _loading = true;
+    private bool _saving;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var prefs = await Http.GetAsync<UserPreferencesDto>("/api/preferences");
+            _model = new SettingsModel
+            {
+                TemperatureUnit = prefs.TemperatureUnit,
+                WindSpeedUnit = prefs.WindSpeedUnit,
+                Theme = prefs.Theme,
+                Language = prefs.Language,
+                UpdateFrequencyMinutes = prefs.UpdateFrequencyMinutes,
+                EnableNotifications = prefs.EnableNotifications,
+                EnableEmailAlerts = prefs.EnableEmailAlerts
+            };
+        }
+        catch
+        {
+            // Use defaults if preferences don't exist yet
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task SaveSettings()
+    {
+        _saving = true;
+        _error = null;
+        _success = null;
+
+        try
+        {
+            var request = new UpdatePreferencesRequest(
+                _model.TemperatureUnit,
+                _model.WindSpeedUnit,
+                _model.EnableNotifications,
+                _model.EnableEmailAlerts,
+                _model.Theme,
+                _model.Language,
+                _model.UpdateFrequencyMinutes
+            );
+
+            await Http.PutAsync<UserPreferencesDto>("/api/preferences", request);
+            _success = "Settings saved.";
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private class SettingsModel
+    {
+        public string TemperatureUnit { get; set; } = "Celsius";
+        public string WindSpeedUnit { get; set; } = "ms";
+        public string Theme { get; set; } = "Light";
+        public string Language { get; set; } = "en";
+        public int UpdateFrequencyMinutes { get; set; } = 30;
+        public bool EnableNotifications { get; set; } = true;
+        public bool EnableEmailAlerts { get; set; }
+    }
+}

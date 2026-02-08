@@ -1,0 +1,93 @@
+@page "/login"
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Login - Truweather</PageTitle>
+
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h3 class="text-center mb-4">Sign In</h3>
+
+                    <ErrorAlert Message="@_error" OnDismiss="() => _error = null" />
+
+                    <EditForm Model="_model" OnValidSubmit="HandleLogin" FormName="login">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <InputText id="email" class="form-control" @bind-Value="_model.Email" placeholder="you@example.com" />
+                            <ValidationMessage For="() => _model.Email" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <InputText id="password" type="password" class="form-control" @bind-Value="_model.Password" placeholder="Enter password" />
+                            <ValidationMessage For="() => _model.Password" />
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100" disabled="@_loading">
+                            @if (_loading)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            }
+                            Sign In
+                        </button>
+                    </EditForm>
+
+                    <hr />
+                    <p class="text-center text-muted mb-0">
+                        Don't have an account? <a href="/register">Create one</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginModel _model = new();
+    private string? _error;
+    private bool _loading;
+
+    private async Task HandleLogin()
+    {
+        _error = null;
+        _loading = true;
+
+        try
+        {
+            var result = await AuthService.LoginAsync(_model.Email, _model.Password);
+
+            if (result.Success)
+            {
+                Navigation.NavigateTo("/", forceLoad: true);
+            }
+            else
+            {
+                _error = result.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private class LoginModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Email is required")]
+        [System.ComponentModel.DataAnnotations.EmailAddress(ErrorMessage = "Invalid email format")]
+        public string Email { get; set; } = "";
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Password is required")]
+        public string Password { get; set; } = "";
+    }
+}

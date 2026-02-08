@@ -1,0 +1,31 @@
+@* Displays current weather data *@
+<div class="card weather-card h-100">
+    <div class="card-body text-center">
+        <h5 class="card-title mb-1">@LocationName</h5>
+        <div class="display-3 fw-bold my-3">@Temperature&deg;</div>
+        <p class="text-muted mb-2">@Condition</p>
+        <div class="row text-center mt-3">
+            <div class="col-4">
+                <small class="text-muted d-block">Feels Like</small>
+                <strong>@FeelsLike&deg;</strong>
+            </div>
+            <div class="col-4">
+                <small class="text-muted d-block">Humidity</small>
+                <strong>@Humidity%</strong>
+            </div>
+            <div class="col-4">
+                <small class="text-muted d-block">Wind</small>
+                <strong>@WindSpeed</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string LocationName { get; set; } = "";
+    [Parameter] public string Temperature { get; set; } = "--";
+    [Parameter] public string Condition { get; set; } = "";
+    [Parameter] public string FeelsLike { get; set; } = "--";
+    [Parameter] public string Humidity { get; set; } = "--";
+    [Parameter] public string WindSpeed { get; set; } = "--";
+}
