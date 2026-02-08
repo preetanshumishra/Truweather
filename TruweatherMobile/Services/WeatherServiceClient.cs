@@ -7,22 +7,56 @@ namespace TruweatherMobile.Services;
 public class WeatherServiceClient
 {
     private readonly HttpClientWrapper _http;
+    private readonly WeatherCacheService _cache;
 
-    public WeatherServiceClient(HttpClientWrapper http)
+    public WeatherServiceClient(HttpClientWrapper http, WeatherCacheService cache)
     {
         _http = http;
+        _cache = cache;
     }
 
-    public Task<CurrentWeatherDto> GetCurrentWeatherAsync(decimal latitude, decimal longitude)
+    public async Task<CurrentWeatherDto?> GetCurrentWeatherAsync(decimal latitude, decimal longitude)
     {
-        return _http.GetAsync<CurrentWeatherDto>(
+        // Try to get from cache first
+        var cached = _cache.GetCachedCurrentWeather(latitude, longitude);
+        if (cached != null)
+        {
+            return cached;
+        }
+
+        // Fetch from API
+        var weather = await _http.GetAsync<CurrentWeatherDto>(
             $"{ApiEndpoints.WeatherCurrent}?latitude={latitude}&longitude={longitude}");
+
+        // Cache the result
+        if (weather != null)
+        {
+            await _cache.CacheCurrentWeatherAsync(latitude, longitude, weather);
+        }
+
+        return weather;
     }
 
-    public Task<ForecastDto> GetForecastAsync(decimal latitude, decimal longitude)
+    public async Task<ForecastDto?> GetForecastAsync(decimal latitude, decimal longitude)
     {
-        return _http.GetAsync<ForecastDto>(
+        // Try to get from cache first
+        var cached = _cache.GetCachedForecast(latitude, longitude);
+        if (cached != null)
+        {
+            return cached;
+        }
+
+        // Fetch from API
+        var forecast = await _http.GetAsync<ForecastDto>(
             $"{ApiEndpoints.WeatherForecast}?latitude={latitude}&longitude={longitude}");
+
+        // Cache the result
+        if (forecast != null)
+        {
+            await _cache.CacheForecastAsync(latitude, longitude, forecast);
+        }
+
+        return forecast;
     }
 
     public Task<List<SavedLocationDto>> GetSavedLocationsAsync()

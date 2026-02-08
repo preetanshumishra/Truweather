@@ -22,17 +22,23 @@ public static class MauiProgram
         builder.Services.AddSingleton<ITokenStorage, SecureTokenStorage>();
         builder.Services.AddSingleton(sp =>
         {
-            var client = new HttpClient { BaseAddress = new Uri("http://localhost:5000") };
+            var client = new HttpClient();
             return client;
         });
         builder.Services.AddSingleton(sp =>
         {
             var httpClient = sp.GetRequiredService<HttpClient>();
-            return new HttpClientWrapper(httpClient, "http://localhost:5000");
+#if DEBUG
+            const string apiBaseUrl = "http://localhost:5000";
+#else
+            const string apiBaseUrl = "https://api.truweather.com";
+#endif
+            return new HttpClientWrapper(httpClient, apiBaseUrl);
         });
         builder.Services.AddSingleton<AuthServiceClient>();
         builder.Services.AddSingleton<WeatherServiceClient>();
         builder.Services.AddSingleton<PreferencesServiceClient>();
+        builder.Services.AddSingleton<WeatherCacheService>();
 
         // ViewModels
         builder.Services.AddTransient<LoginViewModel>();

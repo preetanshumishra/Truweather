@@ -9,11 +9,13 @@ public partial class SettingsViewModel : ObservableObject
 {
     private readonly PreferencesServiceClient _preferencesService;
     private readonly AuthServiceClient _authService;
+    private readonly WeatherCacheService _cacheService;
 
-    public SettingsViewModel(PreferencesServiceClient preferencesService, AuthServiceClient authService)
+    public SettingsViewModel(PreferencesServiceClient preferencesService, AuthServiceClient authService, WeatherCacheService cacheService)
     {
         _preferencesService = preferencesService;
         _authService = authService;
+        _cacheService = cacheService;
     }
 
     public List<string> TemperatureUnits { get; } = ["Celsius", "Fahrenheit", "Kelvin"];
@@ -48,6 +50,12 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private string? successMessage;
 
+    [ObservableProperty]
+    private string cacheSize = "0 KB";
+
+    [ObservableProperty]
+    private bool clearCacheInProgress;
+
     [RelayCommand]
     private async Task LoadAsync()
     {
@@ -64,6 +72,9 @@ public partial class SettingsViewModel : ObservableObject
             SelectedLanguageIndex = Languages.IndexOf(prefs.Language);
             EnableNotifications = prefs.EnableNotifications;
             EnableEmailAlerts = prefs.EnableEmailAlerts;
+
+            // Load cache info
+            UpdateCacheSize();
         }
         catch (Exception ex)
         {
@@ -73,6 +84,11 @@ public partial class SettingsViewModel : ObservableObject
         {
             IsBusy = false;
         }
+    }
+
+    private void UpdateCacheSize()
+    {
+        CacheSize = _cacheService.GetCacheSize();
     }
 
     [RelayCommand]
@@ -103,6 +119,29 @@ public partial class SettingsViewModel : ObservableObject
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task ClearCacheAsync()
+    {
+        try
+        {
+            ClearCacheInProgress = true;
+            ErrorMessage = null;
+            SuccessMessage = null;
+
+            await _cacheService.ClearAllCacheAsync();
+            CacheSize = "0 KB";
+            SuccessMessage = "Cache cleared successfully.";
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to clear cache: {ex.Message}";
+        }
+        finally
+        {
+            ClearCacheInProgress = false;
         }
     }
 

@@ -9,10 +9,12 @@ namespace TruweatherMobile.ViewModels;
 public partial class DashboardViewModel : ObservableObject
 {
     private readonly WeatherServiceClient _weatherService;
+    private readonly WeatherCacheService _cacheService;
 
-    public DashboardViewModel(WeatherServiceClient weatherService)
+    public DashboardViewModel(WeatherServiceClient weatherService, WeatherCacheService cacheService)
     {
         _weatherService = weatherService;
+        _cacheService = cacheService;
     }
 
     [ObservableProperty]
@@ -35,6 +37,12 @@ public partial class DashboardViewModel : ObservableObject
 
     [ObservableProperty]
     private string? errorMessage;
+
+    [ObservableProperty]
+    private string? cacheStatus;
+
+    [ObservableProperty]
+    private bool isDataFromCache;
 
     [RelayCommand]
     private async Task LoadDataAsync()
@@ -100,6 +108,10 @@ public partial class DashboardViewModel : ObservableObject
     {
         try
         {
+            // Check if data is from cache
+            var isCached = _cacheService.HasCachedCurrentWeather(location.Latitude, location.Longitude);
+            IsDataFromCache = isCached;
+
             var weatherTask = _weatherService.GetCurrentWeatherAsync(location.Latitude, location.Longitude);
             var forecastTask = _weatherService.GetForecastAsync(location.Latitude, location.Longitude);
 
@@ -107,10 +119,35 @@ public partial class DashboardViewModel : ObservableObject
 
             CurrentWeather = weatherTask.Result;
             Forecast = forecastTask.Result;
+
+            // Update cache status
+            UpdateCacheStatus(location);
         }
         catch (Exception ex)
         {
             ErrorMessage = $"Failed to load weather: {ex.Message}";
+        }
+    }
+
+    private void UpdateCacheStatus(SavedLocationDto location)
+    {
+        var cachedTime = _cacheService.GetCachedWeatherTimestamp(location.Latitude, location.Longitude);
+        if (cachedTime.HasValue)
+        {
+            var timeAgo = DateTime.UtcNow - cachedTime.Value;
+            var timeText = timeAgo.TotalMinutes < 1
+                ? "Just now"
+                : timeAgo.TotalHours < 1
+                    ? $"{(int)timeAgo.TotalMinutes}m ago"
+                    : $"{(int)timeAgo.TotalHours}h ago";
+
+            CacheStatus = IsDataFromCache
+                ? $"Cached • {timeText}"
+                : $"Updated • {timeText}";
+        }
+        else
+        {
+            CacheStatus = "Fresh data";
         }
     }
 }

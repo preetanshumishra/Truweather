@@ -52,6 +52,7 @@
 	<ItemGroup>
 	  <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 	  <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.1" />
+	  <PackageReference Include="MonkeyCache.FileStore" Version="2.1.1" />
 	</ItemGroup>
 
 	<ItemGroup>
