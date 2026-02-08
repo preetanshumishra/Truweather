@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:TruweatherMobile.ViewModels"
+             x:Class="TruweatherMobile.Pages.AlertsPage"
+             x:DataType="vm:AlertsViewModel"
+             Title="Alerts">
+
+    <Grid RowDefinitions="*,Auto">
+
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Spacing="10" Padding="15">
+
+                <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                   IsVisible="{Binding IsBusy}"
+                                   HorizontalOptions="Center" />
+
+                <Frame Padding="10" BackgroundColor="#FEE2E2"
+                       IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullConverter}}">
+                    <Label Text="{Binding ErrorMessage}" TextColor="#DC2626" />
+                </Frame>
+
+                <!-- Add Form -->
+                <Frame Padding="15" IsVisible="{Binding IsAddFormVisible}">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Create Alert" FontSize="16" FontAttributes="Bold" />
+
+                        <Picker Title="Select Location"
+                                ItemsSource="{Binding Locations}"
+                                ItemDisplayBinding="{Binding LocationName}"
+                                SelectedItem="{Binding SelectedLocation}" />
+
+                        <Entry Placeholder="Alert Type (e.g., Temperature, Rain)"
+                               Text="{Binding AlertType}" />
+
+                        <Entry Placeholder="Condition (e.g., above, below)"
+                               Text="{Binding Condition}" />
+
+                        <Entry Placeholder="Threshold"
+                               Text="{Binding Threshold}"
+                               Keyboard="Numeric" />
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Button Text="Cancel"
+                                    Command="{Binding ToggleAddFormCommand}"
+                                    BackgroundColor="{StaticResource Gray400}"
+                                    Grid.Column="0" />
+                            <Button Text="Create"
+                                    Command="{Binding CreateCommand}"
+                                    Grid.Column="1" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Alerts List -->
+                <CollectionView ItemsSource="{Binding Alerts}">
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout HorizontalOptions="Center" Padding="20">
+                            <Label Text="No weather alerts yet."
+                                   FontSize="16" HorizontalOptions="Center"
+                                   TextColor="{StaticResource Gray500}" />
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <SwipeView>
+                                <SwipeView.RightItems>
+                                    <SwipeItems>
+                                        <SwipeItem Text="Delete"
+                                                   BackgroundColor="Red"
+                                                   Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AlertsViewModel}}, Path=DeleteCommand}"
+                                                   CommandParameter="{Binding .}" />
+                                    </SwipeItems>
+                                </SwipeView.RightItems>
+
+                                <Frame Padding="12" Margin="0,4">
+                                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                        <Label Text="{Binding AlertType}"
+                                               FontSize="16" FontAttributes="Bold"
+                                               Grid.Row="0" Grid.Column="0" />
+
+                                        <Switch IsToggled="{Binding IsEnabled, Mode=OneWay}"
+                                                Grid.Row="0" Grid.Column="1"
+                                                Grid.RowSpan="2"
+                                                VerticalOptions="Center">
+                                            <Switch.Behaviors>
+                                                <EventToCommandBehavior
+                                                    EventName="Toggled"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:AlertsViewModel}}, Path=ToggleEnabledCommand}"
+                                                    CommandParameter="{Binding .}" />
+                                            </Switch.Behaviors>
+                                        </Switch>
+
+                                        <Label Grid.Row="1" Grid.Column="0"
+                                               FontSize="13" TextColor="{StaticResource Gray500}">
+                                            <Label.Text>
+                                                <MultiBinding StringFormat="{}{0} {1} {2}">
+                                                    <Binding Path="Condition" />
+                                                    <Binding Path="Threshold" />
+                                                    <Binding Path="AlertType" />
+                                                </MultiBinding>
+                                            </Label.Text>
+                                        </Label>
+                                    </Grid>
+                                </Frame>
+                            </SwipeView>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Add Button -->
+        <Button Text="+"
+                Grid.Row="1"
+                FontSize="24"
+                WidthRequest="56"
+                HeightRequest="56"
+                CornerRadius="28"
+                Margin="15"
+                HorizontalOptions="End"
+                Command="{Binding ToggleAddFormCommand}"
+                IsVisible="{Binding IsAddFormVisible, Converter={StaticResource InvertedBoolConverter}}" />
+
+    </Grid>
+
+</ContentPage>

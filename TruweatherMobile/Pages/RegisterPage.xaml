@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:TruweatherMobile.ViewModels"
+             x:Class="TruweatherMobile.Pages.RegisterPage"
+             x:DataType="vm:RegisterViewModel"
+             Title="Register"
+             Shell.NavBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="20" Padding="30" VerticalOptions="Center">
+
+            <Label Text="Create Account"
+                   FontSize="32"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   TextColor="{StaticResource Primary}" />
+
+            <Label Text="{Binding ErrorMessage}"
+                   TextColor="Red"
+                   IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullConverter}}"
+                   HorizontalOptions="Center" />
+
+            <Entry Placeholder="Full Name (optional)"
+                   Text="{Binding FullName}"
+                   ReturnType="Next" />
+
+            <Entry Placeholder="Email"
+                   Text="{Binding Email}"
+                   Keyboard="Email"
+                   ReturnType="Next" />
+
+            <Entry Placeholder="Password"
+                   Text="{Binding Password}"
+                   IsPassword="True"
+                   ReturnType="Next" />
+
+            <Entry Placeholder="Confirm Password"
+                   Text="{Binding ConfirmPassword}"
+                   IsPassword="True"
+                   ReturnType="Done" />
+
+            <Button Text="Register"
+                    Command="{Binding RegisterCommand}"
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBoolConverter}}"
+                    HorizontalOptions="Fill" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}"
+                               HorizontalOptions="Center" />
+
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="5">
+                <Label Text="Already have an account?"
+                       VerticalOptions="Center" />
+                <Label Text="Login"
+                       TextColor="{StaticResource Primary}"
+                       FontAttributes="Bold"
+                       VerticalOptions="Center">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding GoToLoginCommand}" />
+                    </Label.GestureRecognizers>
+                </Label>
+            </HorizontalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

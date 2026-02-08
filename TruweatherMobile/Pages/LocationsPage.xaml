@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:TruweatherMobile.ViewModels"
+             x:Class="TruweatherMobile.Pages.LocationsPage"
+             x:DataType="vm:LocationsViewModel"
+             Title="Locations">
+
+    <Grid RowDefinitions="*,Auto">
+
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Spacing="10" Padding="15">
+
+                <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                   IsVisible="{Binding IsBusy}"
+                                   HorizontalOptions="Center" />
+
+                <Frame Padding="10" BackgroundColor="#FEE2E2"
+                       IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullConverter}}">
+                    <Label Text="{Binding ErrorMessage}" TextColor="#DC2626" />
+                </Frame>
+
+                <!-- Add Form -->
+                <Frame Padding="15" IsVisible="{Binding IsAddFormVisible}">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Add Location" FontSize="16" FontAttributes="Bold" />
+
+                        <Entry Placeholder="Location Name"
+                               Text="{Binding NewLocationName}" />
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Entry Placeholder="Latitude"
+                                   Text="{Binding NewLatitude}"
+                                   Keyboard="Numeric"
+                                   Grid.Column="0" />
+                            <Entry Placeholder="Longitude"
+                                   Text="{Binding NewLongitude}"
+                                   Keyboard="Numeric"
+                                   Grid.Column="1" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Button Text="Cancel"
+                                    Command="{Binding ToggleAddFormCommand}"
+                                    BackgroundColor="{StaticResource Gray400}"
+                                    Grid.Column="0" />
+                            <Button Text="Add"
+                                    Command="{Binding AddCommand}"
+                                    Grid.Column="1" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Locations List -->
+                <CollectionView ItemsSource="{Binding Locations}">
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout HorizontalOptions="Center" Padding="20">
+                            <Label Text="No saved locations yet."
+                                   FontSize="16" HorizontalOptions="Center"
+                                   TextColor="{StaticResource Gray500}" />
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <SwipeView>
+                                <SwipeView.RightItems>
+                                    <SwipeItems>
+                                        <SwipeItem Text="Delete"
+                                                   BackgroundColor="Red"
+                                                   Command="{Binding Source={RelativeSource AncestorType={x:Type vm:LocationsViewModel}}, Path=DeleteCommand}"
+                                                   CommandParameter="{Binding .}" />
+                                    </SwipeItems>
+                                </SwipeView.RightItems>
+
+                                <Frame Padding="12" Margin="0,4">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <VerticalStackLayout Grid.Column="0">
+                                            <HorizontalStackLayout Spacing="8">
+                                                <Label Text="{Binding LocationName}"
+                                                       FontSize="16" FontAttributes="Bold" />
+                                                <Frame Padding="4,2" CornerRadius="8"
+                                                       BackgroundColor="{StaticResource Primary}"
+                                                       IsVisible="{Binding IsDefault}">
+                                                    <Label Text="Default" FontSize="11"
+                                                           TextColor="White" />
+                                                </Frame>
+                                            </HorizontalStackLayout>
+                                            <Label Text="{Binding Latitude, StringFormat='Lat: {0:F4}'}"
+                                                   FontSize="12" TextColor="{StaticResource Gray500}" />
+                                            <Label Text="{Binding Longitude, StringFormat='Lon: {0:F4}'}"
+                                                   FontSize="12" TextColor="{StaticResource Gray500}" />
+                                        </VerticalStackLayout>
+
+                                        <Button Text="Set Default"
+                                                Grid.Column="1"
+                                                FontSize="12"
+                                                Padding="8,4"
+                                                IsVisible="{Binding IsDefault, Converter={StaticResource InvertedBoolConverter}}"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:LocationsViewModel}}, Path=SetDefaultCommand}"
+                                                CommandParameter="{Binding .}"
+                                                VerticalOptions="Center" />
+                                    </Grid>
+                                </Frame>
+                            </SwipeView>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Add Button -->
+        <Button Text="+"
+                Grid.Row="1"
+                FontSize="24"
+                WidthRequest="56"
+                HeightRequest="56"
+                CornerRadius="28"
+                Margin="15"
+                HorizontalOptions="End"
+                Command="{Binding ToggleAddFormCommand}"
+                IsVisible="{Binding IsAddFormVisible, Converter={StaticResource InvertedBoolConverter}}" />
+
+    </Grid>
+
+</ContentPage>

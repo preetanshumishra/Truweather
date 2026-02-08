@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:TruweatherMobile.ViewModels"
+             x:Class="TruweatherMobile.Pages.SettingsPage"
+             x:DataType="vm:SettingsViewModel"
+             Title="Settings">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="15" Padding="15">
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}"
+                               IsVisible="{Binding IsBusy}"
+                               HorizontalOptions="Center" />
+
+            <Frame Padding="10" BackgroundColor="#FEE2E2"
+                   IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullConverter}}">
+                <Label Text="{Binding ErrorMessage}" TextColor="#DC2626" />
+            </Frame>
+
+            <Frame Padding="10" BackgroundColor="#DCFCE7"
+                   IsVisible="{Binding SuccessMessage, Converter={StaticResource IsNotNullConverter}}">
+                <Label Text="{Binding SuccessMessage}" TextColor="#16A34A" />
+            </Frame>
+
+            <!-- Units -->
+            <Label Text="Units" FontSize="18" FontAttributes="Bold" />
+
+            <Frame Padding="15">
+                <VerticalStackLayout Spacing="12">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Temperature Unit" FontSize="13" TextColor="{StaticResource Gray500}" />
+                        <Picker ItemsSource="{Binding TemperatureUnits}"
+                                SelectedIndex="{Binding SelectedTemperatureIndex}" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Wind Speed Unit" FontSize="13" TextColor="{StaticResource Gray500}" />
+                        <Picker ItemsSource="{Binding WindSpeedUnits}"
+                                SelectedIndex="{Binding SelectedWindSpeedIndex}" />
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Appearance -->
+            <Label Text="Appearance" FontSize="18" FontAttributes="Bold" />
+
+            <Frame Padding="15">
+                <VerticalStackLayout Spacing="12">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Theme" FontSize="13" TextColor="{StaticResource Gray500}" />
+                        <Picker ItemsSource="{Binding Themes}"
+                                SelectedIndex="{Binding SelectedThemeIndex}" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Language" FontSize="13" TextColor="{StaticResource Gray500}" />
+                        <Picker ItemsSource="{Binding Languages}"
+                                SelectedIndex="{Binding SelectedLanguageIndex}" />
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Notifications -->
+            <Label Text="Notifications" FontSize="18" FontAttributes="Bold" />
+
+            <Frame Padding="15">
+                <VerticalStackLayout Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Push Notifications"
+                               VerticalOptions="Center"
+                               Grid.Column="0" />
+                        <Switch IsToggled="{Binding EnableNotifications}"
+                                Grid.Column="1" />
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Email Alerts"
+                               VerticalOptions="Center"
+                               Grid.Column="0" />
+                        <Switch IsToggled="{Binding EnableEmailAlerts}"
+                                Grid.Column="1" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Frame>
+
+            <Button Text="Save Preferences"
+                    Command="{Binding SaveCommand}"
+                    HorizontalOptions="Fill" />
+
+            <!-- Logout -->
+            <BoxView HeightRequest="1" Color="{StaticResource Gray200}" Margin="0,10" />
+
+            <Button Text="Logout"
+                    Command="{Binding LogoutCommand}"
+                    BackgroundColor="#DC2626"
+                    TextColor="White"
+                    HorizontalOptions="Fill" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:TruweatherMobile.ViewModels"
+             x:Class="TruweatherMobile.Pages.DashboardPage"
+             x:DataType="vm:DashboardViewModel"
+             Title="Dashboard">
+
+    <RefreshView IsRefreshing="{Binding IsRefreshing}"
+                 Command="{Binding RefreshCommand}">
+        <ScrollView>
+            <VerticalStackLayout Spacing="15" Padding="15">
+
+                <!-- Location Picker -->
+                <Frame Padding="10" IsVisible="{Binding Locations.Count, Converter={StaticResource IsNotZeroConverter}}">
+                    <CollectionView ItemsSource="{Binding Locations}"
+                                    SelectionMode="Single"
+                                    SelectedItem="{Binding SelectedLocation}"
+                                    SelectionChangedCommand="{Binding SelectLocationCommand}"
+                                    SelectionChangedCommandParameter="{Binding SelectedLocation}"
+                                    HeightRequest="50"
+                                    ItemsLayout="HorizontalList">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <Frame Padding="8,4" Margin="4,0" CornerRadius="16"
+                                       BackgroundColor="{StaticResource Secondary}">
+                                    <Label Text="{Binding .}" FontSize="13" />
+                                </Frame>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Frame>
+
+                <!-- Loading -->
+                <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                   IsVisible="{Binding IsLoading}"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center" />
+
+                <!-- Error -->
+                <Frame Padding="10" BackgroundColor="#FEE2E2"
+                       IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullConverter}}">
+                    <Label Text="{Binding ErrorMessage}" TextColor="#DC2626" />
+                </Frame>
+
+                <!-- No Locations Message -->
+                <VerticalStackLayout IsVisible="{Binding SelectedLocation, Converter={StaticResource IsNullConverter}}"
+                                     HorizontalOptions="Center" Spacing="10" Padding="20">
+                    <Label Text="No saved locations"
+                           FontSize="18" FontAttributes="Bold"
+                           HorizontalOptions="Center" />
+                    <Label Text="Add a location to see weather data."
+                           HorizontalOptions="Center"
+                           TextColor="{StaticResource Gray500}" />
+                </VerticalStackLayout>
+
+                <!-- Current Weather Card -->
+                <Frame Padding="20" IsVisible="{Binding CurrentWeather, Converter={StaticResource IsNotNullConverter}}">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="{Binding CurrentWeather.LocationName}"
+                               FontSize="20" FontAttributes="Bold" />
+
+                        <HorizontalStackLayout Spacing="15">
+                            <Label Text="{Binding CurrentWeather.Temperature, StringFormat='{0:F1}'}"
+                                   FontSize="48" FontAttributes="Bold"
+                                   TextColor="{StaticResource Primary}" />
+                            <VerticalStackLayout VerticalOptions="Center">
+                                <Label Text="{Binding CurrentWeather.Condition}"
+                                       FontSize="16" FontAttributes="Bold" />
+                                <Label Text="{Binding CurrentWeather.Description}"
+                                       FontSize="13" TextColor="{StaticResource Gray500}" />
+                            </VerticalStackLayout>
+                        </HorizontalStackLayout>
+
+                        <BoxView HeightRequest="1" Color="{StaticResource Gray200}" />
+
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="15" RowSpacing="8">
+                            <Label Text="{Binding CurrentWeather.FeelsLike, StringFormat='Feels like: {0:F1}'}"
+                                   Grid.Row="0" Grid.Column="0" FontSize="13" />
+                            <Label Text="{Binding CurrentWeather.Humidity, StringFormat='Humidity: {0}%'}"
+                                   Grid.Row="0" Grid.Column="1" FontSize="13" />
+                            <Label Text="{Binding CurrentWeather.WindSpeed, StringFormat='Wind: {0:F1} m/s'}"
+                                   Grid.Row="1" Grid.Column="0" FontSize="13" />
+                            <Label Text="{Binding CurrentWeather.Pressure, StringFormat='Pressure: {0:F0} hPa'}"
+                                   Grid.Row="1" Grid.Column="1" FontSize="13" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- 7-Day Forecast -->
+                <Label Text="7-Day Forecast"
+                       FontSize="18" FontAttributes="Bold"
+                       IsVisible="{Binding Forecast, Converter={StaticResource IsNotNullConverter}}" />
+
+                <CollectionView ItemsSource="{Binding Forecast.Days}"
+                                IsVisible="{Binding Forecast, Converter={StaticResource IsNotNullConverter}}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Frame Padding="12" Margin="0,4">
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                                    <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
+                                        <Label Text="{Binding Date, StringFormat='{0:ddd}'}"
+                                               FontAttributes="Bold" FontSize="14" />
+                                        <Label Text="{Binding Date, StringFormat='{0:MMM d}'}"
+                                               FontSize="12" TextColor="{StaticResource Gray500}" />
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                        <Label Text="{Binding Condition}" FontSize="14" />
+                                        <Label Text="{Binding Description}"
+                                               FontSize="12" TextColor="{StaticResource Gray500}" />
+                                    </VerticalStackLayout>
+
+                                    <HorizontalStackLayout Grid.Column="2" Spacing="8" VerticalOptions="Center">
+                                        <Label Text="{Binding MaxTemperature, StringFormat='{0:F0}'}"
+                                               FontAttributes="Bold" FontSize="14" />
+                                        <Label Text="{Binding MinTemperature, StringFormat='{0:F0}'}"
+                                               FontSize="14" TextColor="{StaticResource Gray400}" />
+                                    </HorizontalStackLayout>
+                                </Grid>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+
+</ContentPage>

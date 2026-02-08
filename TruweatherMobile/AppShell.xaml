@@ -3,12 +3,39 @@
     x:Class="TruweatherMobile.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:TruweatherMobile"
+    xmlns:pages="clr-namespace:TruweatherMobile.Pages"
     Shell.FlyoutBehavior="Disabled">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <!-- Auth Pages (no tabs) -->
+    <ShellContent Route="login"
+                  ContentTemplate="{DataTemplate pages:LoginPage}"
+                  Shell.TabBarIsVisible="False" />
+
+    <ShellContent Route="register"
+                  ContentTemplate="{DataTemplate pages:RegisterPage}"
+                  Shell.TabBarIsVisible="False" />
+
+    <!-- Main App TabBar -->
+    <TabBar Route="main">
+        <ShellContent Route="dashboard"
+                      Title="Dashboard"
+                      Icon="{OnPlatform iOS='house', Android='house'}"
+                      ContentTemplate="{DataTemplate pages:DashboardPage}" />
+
+        <ShellContent Route="locations"
+                      Title="Locations"
+                      Icon="{OnPlatform iOS='location', Android='location'}"
+                      ContentTemplate="{DataTemplate pages:LocationsPage}" />
+
+        <ShellContent Route="alerts"
+                      Title="Alerts"
+                      Icon="{OnPlatform iOS='bell', Android='bell'}"
+                      ContentTemplate="{DataTemplate pages:AlertsPage}" />
+
+        <ShellContent Route="settings"
+                      Title="Settings"
+                      Icon="{OnPlatform iOS='gear', Android='gear'}"
+                      ContentTemplate="{DataTemplate pages:SettingsPage}" />
+    </TabBar>
 
 </Shell>
