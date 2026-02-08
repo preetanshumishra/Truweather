@@ -11,6 +11,7 @@ public class TruweatherDbContext(DbContextOptions<TruweatherDbContext> options)
     public DbSet<WeatherData> WeatherData { get; set; }
     public DbSet<WeatherAlert> WeatherAlerts { get; set; }
     public DbSet<UserPreferences> UserPreferences { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -34,6 +35,21 @@ public class TruweatherDbContext(DbContextOptions<TruweatherDbContext> options)
             .WithOne(p => p.User)
             .HasForeignKey<UserPreferences>(p => p.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<User>()
+            .HasMany(u => u.RefreshTokens)
+            .WithOne(r => r.User)
+            .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // RefreshToken configuration
+        builder.Entity<RefreshToken>()
+            .HasIndex(r => r.Token)
+            .IsUnique(true);
+
+        builder.Entity<RefreshToken>()
+            .HasIndex(r => r.UserId)
+            .IsUnique(false);
 
         // SavedLocation configuration
         builder.Entity<SavedLocation>()

@@ -13,16 +13,25 @@ namespace TruweatherAPI.Services;
 /// Fetches real weather data from Open-Meteo API with in-memory caching.
 /// Falls back to database-stored weather data if API is unavailable.
 /// </summary>
-public class WeatherService(TruweatherDbContext context, IMemoryCache cache, OpenMeteoWeatherService openMeteoService) : IWeatherService
+public class WeatherService(
+    TruweatherDbContext context,
+    IMemoryCache cache,
+    OpenMeteoWeatherService openMeteoService,
+    IConfiguration configuration,
+    IHttpContextAccessor httpContextAccessor) : IWeatherService
 {
     private readonly TruweatherDbContext _context = context;
     private readonly IMemoryCache _cache = cache;
     private readonly OpenMeteoWeatherService _openMeteoService = openMeteoService;
+    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
-    // Cache key prefixes and TTL
+    // Cache key prefixes
     private const string CurrentWeatherCacheKeyPrefix = "weather_current_";
     private const string ForecastCacheKeyPrefix = "weather_forecast_";
-    private const int CacheTtlMinutes = 60; // Cache weather data for 1 hour
+
+    // Configurable cache TTLs
+    private readonly int _weatherCacheTtlMinutes = configuration.GetValue<int>("Cache:WeatherTtlMinutes", 60);
+    private readonly int _forecastCacheTtlMinutes = configuration.GetValue<int>("Cache:ForecastTtlMinutes", 60);
 
     public async Task<CurrentWeatherDto?> GetCurrentWeatherAsync(decimal latitude, decimal longitude)
     {
@@ -31,6 +40,7 @@ public class WeatherService(TruweatherDbContext context, IMemoryCache cache, Ope
         // Try to get from cache
         if (_cache.TryGetValue(cacheKey, out CurrentWeatherDto? cachedWeather))
         {
+            SetDataSourceHeader("MemoryCache");
             return cachedWeather;
         }
 
@@ -42,14 +52,25 @@ public class WeatherService(TruweatherDbContext context, IMemoryCache cache, Ope
 
         if (weather != null)
         {
-            // Cache for 1 hour
-            _cache.Set(cacheKey, weather, TimeSpan.FromMinutes(CacheTtlMinutes));
+            // Cache in memory
+            _cache.Set(cacheKey, weather, TimeSpan.FromMinutes(_weatherCacheTtlMinutes));
+            // Persist to database
+            await PersistWeatherToDbAsync(latitude, longitude, weather);
+            SetDataSourceHeader("Live");
             return weather;
         }
 
         // Fallback: Try to get from database if API fails
         var dbWeather = await GetStoredWeatherAsync(latitude, longitude);
-        return dbWeather;
+        if (dbWeather != null)
+        {
+            SetDataSourceHeader("Database");
+            return dbWeather;
+        }
+
+        // Final fallback: mock data
+        SetDataSourceHeader("Fallback");
+        return null;
     }
 
     public async Task<ForecastDto?> GetForecastAsync(decimal latitude, decimal longitude)
@@ -59,6 +80,7 @@ public class WeatherService(TruweatherDbContext context, IMemoryCache cache, Ope
         // Try to get from cache
         if (_cache.TryGetValue(cacheKey, out ForecastDto? cachedForecast))
         {
+            SetDataSourceHeader("MemoryCache");
             return cachedForecast;
         }
 
@@ -70,12 +92,14 @@ public class WeatherService(TruweatherDbContext context, IMemoryCache cache, Ope
 
         if (forecast != null)
         {
-            // Cache for 1 hour
-            _cache.Set(cacheKey, forecast, TimeSpan.FromMinutes(CacheTtlMinutes));
+            // Cache in memory
+            _cache.Set(cacheKey, forecast, TimeSpan.FromMinutes(_forecastCacheTtlMinutes));
+            SetDataSourceHeader("Live");
             return forecast;
         }
 
         // Fallback: Generate mock forecast if API fails
+        SetDataSourceHeader("Fallback");
         return GetMockForecastFallback(latitude, longitude, locationName);
     }
 
@@ -236,8 +260,12 @@ public class WeatherService(TruweatherDbContext context, IMemoryCache cache, Ope
     /// </summary>
     private async Task<CurrentWeatherDto?> GetStoredWeatherAsync(decimal latitude, decimal longitude)
     {
+        var locationId = await GetLocationIdAsync(latitude, longitude);
+        if (locationId == 0)
+            return null;
+
         var weather = await _context.WeatherData
-            .Where(w => w.SavedLocationId == GetLocationIdAsync(latitude, longitude).Result)
+            .Where(w => w.SavedLocationId == locationId)
             .OrderByDescending(w => w.CachedAt)
             .FirstOrDefaultAsync();
 
@@ -299,5 +327,74 @@ public class WeatherService(TruweatherDbContext context, IMemoryCache cache, Ope
             Longitude: longitude,
             Days: days
         );
+    }
+
+    /// <summary>
+    /// Set the X-Data-Source response header to indicate where data came from.
+    /// </summary>
+    private void SetDataSourceHeader(string source)
+    {
+        _httpContextAccessor.HttpContext?.Response.Headers["X-Data-Source"] = source;
+    }
+
+    /// <summary>
+    /// Persist fetched weather to the database if it matches a saved location.
+    /// Wraps in try/catch so a DB failure doesn't break the API response.
+    /// </summary>
+    private async Task PersistWeatherToDbAsync(decimal latitude, decimal longitude, CurrentWeatherDto weather)
+    {
+        try
+        {
+            var locationId = await GetLocationIdAsync(latitude, longitude);
+            if (locationId == 0)
+                return; // Only persist if coordinates match a saved location
+
+            var today = DateTime.UtcNow.Date;
+            var existingWeather = await _context.WeatherData
+                .FirstOrDefaultAsync(w => w.SavedLocationId == locationId && w.CachedAt.Date == today);
+
+            if (existingWeather != null)
+            {
+                // Update existing record
+                existingWeather.Temperature = weather.Temperature;
+                existingWeather.FeelsLike = weather.FeelsLike;
+                existingWeather.Condition = weather.Condition;
+                existingWeather.Description = weather.Description;
+                existingWeather.WindSpeed = weather.WindSpeed;
+                existingWeather.WindDegree = weather.WindDegree;
+                existingWeather.Pressure = weather.Pressure;
+                existingWeather.Visibility = weather.Visibility;
+                existingWeather.IconUrl = weather.IconUrl;
+                existingWeather.CachedAt = DateTime.UtcNow;
+
+                _context.WeatherData.Update(existingWeather);
+            }
+            else
+            {
+                // Insert new record
+                var weatherData = new WeatherData
+                {
+                    SavedLocationId = locationId,
+                    Temperature = weather.Temperature,
+                    FeelsLike = weather.FeelsLike,
+                    Condition = weather.Condition,
+                    Description = weather.Description,
+                    WindSpeed = weather.WindSpeed,
+                    WindDegree = weather.WindDegree,
+                    Pressure = weather.Pressure,
+                    Visibility = weather.Visibility,
+                    IconUrl = weather.IconUrl,
+                    CachedAt = DateTime.UtcNow
+                };
+
+                _context.WeatherData.Add(weatherData);
+            }
+
+            await _context.SaveChangesAsync();
+        }
+        catch (Exception)
+        {
+            // Silently fail - don't break API response if DB persistence fails
+        }
     }
 }

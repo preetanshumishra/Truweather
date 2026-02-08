@@ -11,6 +11,7 @@ namespace TruweatherAPI.Services.OpenMeteo;
 public class OpenMeteoWeatherService
 {
     private readonly HttpClient _httpClient;
+    private readonly ILogger<OpenMeteoWeatherService> _logger;
     private const string BaseUrl = "https://api.open-meteo.com/v1";
 
     // Current weather parameters
@@ -19,9 +20,10 @@ public class OpenMeteoWeatherService
     // Daily forecast parameters (7 days)
     private const string DailyParams = "temperature_2m_max,temperature_2m_min,temperature_2m_mean,weather_code,precipitation_sum,wind_speed_10m_max,wind_direction_10m_dominant";
 
-    public OpenMeteoWeatherService(HttpClient httpClient)
+    public OpenMeteoWeatherService(HttpClient httpClient, ILogger<OpenMeteoWeatherService> logger)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _httpClient.BaseAddress = new Uri(BaseUrl);
     }
 
@@ -60,7 +62,7 @@ public class OpenMeteoWeatherService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error fetching current weather: {ex.Message}");
+            _logger.LogError(ex, "Error fetching current weather for {Latitude},{Longitude}", latitude, longitude);
             return null;
         }
     }
@@ -108,7 +110,7 @@ public class OpenMeteoWeatherService
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error fetching forecast: {ex.Message}");
+            _logger.LogError(ex, "Error fetching forecast for {Latitude},{Longitude}", latitude, longitude);
             return null;
         }
     }

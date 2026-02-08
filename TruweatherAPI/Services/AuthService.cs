@@ -2,9 +2,11 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using TruweatherCore.Models.DTOs;
 using TruweatherCore.Services.Interfaces;
+using TruweatherAPI.Data;
 using TruweatherAPI.Models;
 
 namespace TruweatherAPI.Services;
@@ -12,11 +14,13 @@ namespace TruweatherAPI.Services;
 public class AuthService(
     UserManager<User> userManager,
     SignInManager<User> signInManager,
-    IConfiguration configuration) : IAuthService
+    IConfiguration configuration,
+    TruweatherDbContext context) : IAuthService
 {
     private readonly UserManager<User> _userManager = userManager;
     private readonly SignInManager<User> _signInManager = signInManager;
     private readonly IConfiguration _configuration = configuration;
+    private readonly TruweatherDbContext _context = context;
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
     {
@@ -71,6 +75,17 @@ public class AuthService(
         var accessToken = GenerateJwtToken(user);
         var refreshToken = GenerateRefreshToken();
 
+        // Save refresh token to database
+        var refreshTokenEntity = new RefreshToken
+        {
+            UserId = user.Id,
+            Token = refreshToken,
+            ExpiresAt = DateTime.UtcNow.AddDays(30),
+            CreatedAt = DateTime.UtcNow
+        };
+        _context.RefreshTokens.Add(refreshTokenEntity);
+        await _context.SaveChangesAsync();
+
         return new AuthResponse(
             true,
             "Login successful",
@@ -88,24 +103,30 @@ public class AuthService(
 
     public async Task<AuthResponse> RefreshTokenAsync(string refreshToken)
     {
-        // In a production app, validate the refresh token against a database
-        // For now, return a new access token
-        var principal = GetPrincipalFromExpiredToken(refreshToken);
-        if (principal == null)
+        var tokenEntity = await _context.RefreshTokens
+            .Include(r => r.User)
+            .FirstOrDefaultAsync(r => r.Token == refreshToken);
+
+        if (tokenEntity == null || tokenEntity.IsRevoked || tokenEntity.ExpiresAt <= DateTime.UtcNow)
         {
-            return new AuthResponse(false, "Invalid refresh token");
+            return new AuthResponse(false, "Invalid or expired refresh token");
         }
 
-        var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var user = await _userManager.FindByIdAsync(userId ?? string.Empty);
+        // Revoke the old token (rotation)
+        tokenEntity.IsRevoked = true;
 
-        if (user == null)
-        {
-            return new AuthResponse(false, "User not found");
-        }
-
-        var newAccessToken = GenerateJwtToken(user);
+        var newAccessToken = GenerateJwtToken(tokenEntity.User);
         var newRefreshToken = GenerateRefreshToken();
+
+        var newTokenEntity = new RefreshToken
+        {
+            UserId = tokenEntity.UserId,
+            Token = newRefreshToken,
+            ExpiresAt = DateTime.UtcNow.AddDays(30),
+            CreatedAt = DateTime.UtcNow
+        };
+        _context.RefreshTokens.Add(newTokenEntity);
+        await _context.SaveChangesAsync();
 
         return new AuthResponse(
             true,
@@ -117,6 +138,16 @@ public class AuthService(
 
     public async Task<bool> LogoutAsync(string userId)
     {
+        var activeTokens = await _context.RefreshTokens
+            .Where(r => r.UserId == userId && !r.IsRevoked)
+            .ToListAsync();
+
+        foreach (var token in activeTokens)
+        {
+            token.IsRevoked = true;
+        }
+
+        await _context.SaveChangesAsync();
         await _signInManager.SignOutAsync();
         return true;
     }
@@ -157,38 +188,4 @@ public class AuthService(
         return Convert.ToBase64String(randomNumber);
     }
 
-    private ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
-    {
-        var jwtSettings = _configuration.GetSection("Jwt");
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-            jwtSettings["Secret"] ?? throw new InvalidOperationException("JWT Secret not configured")));
-
-        var tokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateAudience = false,
-            ValidateIssuer = false,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = key,
-            ValidateLifetime = false
-        };
-
-        try
-        {
-            var principal = new JwtSecurityTokenHandler().ValidateToken(
-                token, tokenValidationParameters, out SecurityToken securityToken);
-
-            if (!(securityToken is JwtSecurityToken jwtSecurityToken) ||
-                !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
-                    StringComparison.InvariantCultureIgnoreCase))
-            {
-                return null;
-            }
-
-            return principal;
-        }
-        catch
-        {
-            return null;
-        }
-    }
 }

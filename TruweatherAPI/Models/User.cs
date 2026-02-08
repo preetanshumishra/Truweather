@@ -11,5 +11,6 @@ public class User : IdentityUser
     // Navigation properties
     public ICollection<SavedLocation> SavedLocations { get; set; } = [];
     public ICollection<WeatherAlert> WeatherAlerts { get; set; } = [];
+    public ICollection<RefreshToken> RefreshTokens { get; set; } = [];
     public UserPreferences? UserPreferences { get; set; }
 }
