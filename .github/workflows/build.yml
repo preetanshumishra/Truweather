@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        dotnet-version: ['8.0.x']
+        dotnet-version: ['10.0.x']
 
     steps:
     - name: Checkout code
@@ -23,7 +23,6 @@ jobs:
       with:
         dotnet-version: ${{ matrix.dotnet-version }}
         cache: true
-        cache-dependency-path: '**/packages.lock.json'
 
     - name: Restore dependencies
       run: dotnet restore Truweather.sln

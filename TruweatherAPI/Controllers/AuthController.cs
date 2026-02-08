@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using TruweatherCore.Models.DTOs;
-using TruweatherAPI.Services;
+using TruweatherCore.Services.Interfaces;
 
 namespace TruweatherAPI.Controllers;
 

@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using TruweatherCore.Models.DTOs;
+using TruweatherCore.Services.Interfaces;
 using TruweatherAPI.Models;
 
 namespace TruweatherAPI.Services;
