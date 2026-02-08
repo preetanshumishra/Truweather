@@ -30,7 +30,7 @@ public class OpenMeteoWeatherService
     /// <summary>
     /// Get current weather for specified coordinates.
     /// </summary>
-    public async Task<CurrentWeatherDto?> GetCurrentWeatherAsync(decimal latitude, decimal longitude, string? locationName = null)
+    public virtual async Task<CurrentWeatherDto?> GetCurrentWeatherAsync(decimal latitude, decimal longitude, string? locationName = null)
     {
         try
         {
@@ -70,7 +70,7 @@ public class OpenMeteoWeatherService
     /// <summary>
     /// Get 7-day weather forecast for specified coordinates.
     /// </summary>
-    public async Task<ForecastDto?> GetForecastAsync(decimal latitude, decimal longitude, string? locationName = null)
+    public virtual async Task<ForecastDto?> GetForecastAsync(decimal latitude, decimal longitude, string? locationName = null)
     {
         try
         {

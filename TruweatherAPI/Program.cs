@@ -32,11 +32,20 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
         retainedFileCountLimit: 7));
 
 // Add DbContext
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+if (builder.Environment.IsEnvironment("Testing"))
+{
+    var testDbName = "TruweatherTestDb_" + Guid.NewGuid();
+    builder.Services.AddDbContext<TruweatherDbContext>(options =>
+        options.UseInMemoryDatabase(testDbName));
+}
+else
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+        ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-builder.Services.AddDbContext<TruweatherDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    builder.Services.AddDbContext<TruweatherDbContext>(options =>
+        options.UseSqlServer(connectionString));
+}
 
 // Add Identity
 builder.Services.AddIdentity<User, IdentityRole>()
@@ -92,6 +101,7 @@ builder.Services.AddCors(options =>
 });
 
 // Add Rate Limiting
+var isTesting = builder.Environment.IsEnvironment("Testing");
 builder.Services.AddRateLimiter(options =>
 {
     options.AddPolicy("auth", httpContext =>
@@ -100,7 +110,7 @@ builder.Services.AddRateLimiter(options =>
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 Window = TimeSpan.FromMinutes(1),
-                PermitLimit = 10,
+                PermitLimit = isTesting ? 10000 : 10,
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 QueueLimit = 0
             }));
@@ -111,7 +121,7 @@ builder.Services.AddRateLimiter(options =>
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 Window = TimeSpan.FromMinutes(1),
-                PermitLimit = 100,
+                PermitLimit = isTesting ? 10000 : 100,
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 QueueLimit = 0
             }));
@@ -164,9 +174,10 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseSerilogRequestLogging();
 
-// Apply migrations automatically
-using (var scope = app.Services.CreateScope())
+// Apply migrations automatically (skip in testing - InMemory provider can't run migrations)
+if (!app.Environment.IsEnvironment("Testing"))
 {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<TruweatherDbContext>();
     db.Database.Migrate();
 }
@@ -186,3 +197,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program { }

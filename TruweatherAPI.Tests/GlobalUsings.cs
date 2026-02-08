@@ -1,0 +1,16 @@
+global using Xunit;
+global using FluentAssertions;
+global using Moq;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.Extensions.Caching.Memory;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.AspNetCore.Http;
+global using Microsoft.AspNetCore.Identity;
+global using TruweatherAPI.Data;
+global using TruweatherAPI.Models;
+global using TruweatherAPI.Services;
+global using TruweatherAPI.Services.OpenMeteo;
+global using TruweatherCore.Models.DTOs;
+global using TruweatherCore.Services.Interfaces;
+global using TruweatherAPI.Tests.Fixtures;
