@@ -43,6 +43,7 @@ project.fragment.lock.json
 .env.local
 .env.*.local
 appsettings.Development.json
+appsettings.Production.json
 appsettings.local.json
 
 # Test results
