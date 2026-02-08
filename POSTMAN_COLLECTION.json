@@ -1,0 +1,553 @@
+{
+  "info": {
+    "name": "Truweather API",
+    "description": "Complete collection for testing Truweather API endpoints",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"passwordConfirm\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "tests": "if (pm.response.code === 200) {\n  var jsonData = pm.response.json();\n  pm.environment.set(\"accessToken\", jsonData.data.accessToken);\n  pm.environment.set(\"refreshToken\", jsonData.data.refreshToken);\n}"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Weather - Current",
+      "item": [
+        {
+          "name": "Get Current Weather - New York",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/weather/current?latitude=40.7128&longitude=-74.0060",
+              "host": ["{{base_url}}"],
+              "path": ["weather", "current"],
+              "query": [
+                {
+                  "key": "latitude",
+                  "value": "40.7128"
+                },
+                {
+                  "key": "longitude",
+                  "value": "-74.0060"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Current Weather - San Francisco",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/weather/current?latitude=37.7749&longitude=-122.4194",
+              "host": ["{{base_url}}"],
+              "path": ["weather", "current"],
+              "query": [
+                {
+                  "key": "latitude",
+                  "value": "37.7749"
+                },
+                {
+                  "key": "longitude",
+                  "value": "-122.4194"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Current Weather - London",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/weather/current?latitude=51.5074&longitude=-0.1278",
+              "host": ["{{base_url}}"],
+              "path": ["weather", "current"],
+              "query": [
+                {
+                  "key": "latitude",
+                  "value": "51.5074"
+                },
+                {
+                  "key": "longitude",
+                  "value": "-0.1278"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Weather - Forecast",
+      "item": [
+        {
+          "name": "Get 7-Day Forecast - New York",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/weather/forecast?latitude=40.7128&longitude=-74.0060",
+              "host": ["{{base_url}}"],
+              "path": ["weather", "forecast"],
+              "query": [
+                {
+                  "key": "latitude",
+                  "value": "40.7128"
+                },
+                {
+                  "key": "longitude",
+                  "value": "-74.0060"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Locations",
+      "item": [
+        {
+          "name": "Get All Locations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/weather/locations",
+              "host": ["{{base_url}}"],
+              "path": ["weather", "locations"]
+            }
+          }
+        },
+        {
+          "name": "Add Location - New York",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"locationName\": \"Home - New York\",\n  \"latitude\": 40.7128,\n  \"longitude\": -74.0060,\n  \"isDefault\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/weather/locations",
+              "host": ["{{base_url}}"],
+              "path": ["weather", "locations"]
+            }
+          }
+        },
+        {
+          "name": "Add Location - San Francisco",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"locationName\": \"Office - San Francisco\",\n  \"latitude\": 37.7749,\n  \"longitude\": -122.4194,\n  \"isDefault\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/weather/locations",
+              "host": ["{{base_url}}"],
+              "path": ["weather", "locations"]
+            }
+          }
+        },
+        {
+          "name": "Update Location",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"locationName\": \"Updated Location Name\",\n  \"isDefault\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/weather/locations/1",
+              "host": ["{{base_url}}"],
+              "path": ["weather", "locations", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Location",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/weather/locations/1",
+              "host": ["{{base_url}}"],
+              "path": ["weather", "locations", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Alerts",
+      "item": [
+        {
+          "name": "Get All Alerts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/weather/alerts",
+              "host": ["{{base_url}}"],
+              "path": ["weather", "alerts"]
+            }
+          }
+        },
+        {
+          "name": "Create Alert - High Temperature",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"savedLocationId\": 1,\n  \"alertType\": \"temperature\",\n  \"condition\": \">\",\n  \"threshold\": 30\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/weather/alerts",
+              "host": ["{{base_url}}"],
+              "path": ["weather", "alerts"]
+            }
+          }
+        },
+        {
+          "name": "Create Alert - High Wind Speed",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"savedLocationId\": 1,\n  \"alertType\": \"wind\",\n  \"condition\": \">\",\n  \"threshold\": 20\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/weather/alerts",
+              "host": ["{{base_url}}"],
+              "path": ["weather", "alerts"]
+            }
+          }
+        },
+        {
+          "name": "Update Alert",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"alertType\": \"temperature\",\n  \"condition\": \">\",\n  \"threshold\": 35,\n  \"isEnabled\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/weather/alerts/1",
+              "host": ["{{base_url}}"],
+              "path": ["weather", "alerts", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Alert",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/weather/alerts/1",
+              "host": ["{{base_url}}"],
+              "path": ["weather", "alerts", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Preferences",
+      "item": [
+        {
+          "name": "Get Preferences",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/preferences",
+              "host": ["{{base_url}}"],
+              "path": ["preferences"]
+            }
+          }
+        },
+        {
+          "name": "Update Preferences - Language",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"language\": \"es\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/preferences",
+              "host": ["{{base_url}}"],
+              "path": ["preferences"]
+            }
+          }
+        },
+        {
+          "name": "Update Preferences - Units",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"temperatureUnit\": \"Fahrenheit\",\n  \"windSpeedUnit\": \"mph\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/preferences",
+              "host": ["{{base_url}}"],
+              "path": ["preferences"]
+            }
+          }
+        },
+        {
+          "name": "Update Preferences - Theme",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"theme\": \"dark\",\n  \"notificationsEnabled\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/preferences",
+              "host": ["{{base_url}}"],
+              "path": ["preferences"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000/api"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    }
+  ]
+}
