@@ -1,0 +1,7 @@
+<Project>
+  <!-- Android JDK Version Settings -->
+  <PropertyGroup>
+    <AndroidEnableValidateJavaVersion>false</AndroidEnableValidateJavaVersion>
+    <AndroidUseLatestJdk>true</AndroidUseLatestJdk>
+  </PropertyGroup>
+</Project>

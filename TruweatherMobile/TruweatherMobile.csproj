@@ -11,6 +11,9 @@
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<!-- Allow JDK 22 for Android builds -->
+		<AndroidEnableValidateJavaVersion>false</AndroidEnableValidateJavaVersion>
+		<AndroidUseLatestJdk>true</AndroidUseLatestJdk>
 
 		<!-- Display name -->
 		<ApplicationTitle>TruweatherMobile</ApplicationTitle>
@@ -50,6 +53,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="CommunityToolkit.Maui" Version="8.0.1" />
 	  <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 	  <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.1" />
 	  <PackageReference Include="MonkeyCache.FileStore" Version="2.1.1" />
