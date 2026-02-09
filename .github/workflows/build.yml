@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-14
 
     strategy:
       matrix:
@@ -22,6 +22,9 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: ${{ matrix.dotnet-version }}
+
+    - name: Install MAUI workload
+      run: dotnet workload restore
 
     - name: Restore dependencies
       run: dotnet restore Truweather.sln
