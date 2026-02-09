@@ -34,9 +34,13 @@ Truweather/
 - Saved locations with default location support
 - Weather alerts with configurable type, condition, and threshold
 - User preferences (temperature/wind units, theme, language, notifications)
-- Internationalization support (10 languages)
+- Internationalization support (10 languages, fully translated)
 - Shared Core library for code reuse across all projects
 - CI/CD pipeline with automated build, test, and artifact upload
+- API response caching (in-memory + database persistence, configurable TTLs)
+- Offline mobile caching (MonkeyCache.FileStore, 60-minute TTL)
+- Comprehensive testing (66 tests: 43 unit + 23 integration, xUnit + FluentAssertions)
+- Postman collection for API testing (pre-configured with all 14 endpoints)
 
 ## Prerequisites
 
@@ -159,7 +163,9 @@ TruweatherMobile/
 
 ## API Endpoints
 
-All endpoints documented in Swagger at `/swagger` when running the API.
+### Swagger UI
+
+All endpoints are documented in interactive Swagger UI at `/swagger` when running the API.
 
 ### Authentication
 | Method | Endpoint | Description |
@@ -258,6 +264,33 @@ dotnet ef migrations remove
 
 ### Internationalization
 TruweatherCore includes localization resources for 10 languages: English, Spanish, French, German, Italian, Portuguese, Russian, Chinese, Japanese, Korean.
+
+## Testing
+
+The project includes a comprehensive test suite with 66 tests:
+
+- **43 unit tests**: Service layer (AuthService, WeatherService, PreferencesService, OpenMeteoWeatherService)
+- **23 integration tests**: API controllers (Auth, Weather, Preferences)
+- **Framework**: xUnit + FluentAssertions + Moq
+- **Coverage**: Core business logic and API endpoints
+
+Run tests:
+```bash
+cd TruweatherAPI.Tests
+dotnet test
+dotnet test -v normal  # Verbose output
+```
+
+## Documentation
+
+- **README.md** - This file (project overview and setup)
+- **TODO.md** - Project status and roadmap (22/24 phases complete)
+- **PROGRESS.md** - Detailed development log
+- **TruweatherCore/Resources/README.md** - Localization system guide
+- **Archived Documentation** in `docs/archive/`:
+  - API_DOCUMENTATION.md - Comprehensive API reference (Swagger is primary)
+  - AZURE_DEPLOYMENT_GUIDE.md - Azure deployment planning
+  - PHASE_21_OFFLINE_CACHING.md - Offline caching implementation details
 
 ## Troubleshooting
 
