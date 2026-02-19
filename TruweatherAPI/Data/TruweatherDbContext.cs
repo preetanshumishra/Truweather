@@ -12,6 +12,7 @@ public class TruweatherDbContext(DbContextOptions<TruweatherDbContext> options)
     public DbSet<WeatherAlert> WeatherAlerts { get; set; }
     public DbSet<UserPreferences> UserPreferences { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -40,6 +41,12 @@ public class TruweatherDbContext(DbContextOptions<TruweatherDbContext> options)
             .HasMany(u => u.RefreshTokens)
             .WithOne(r => r.User)
             .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<User>()
+            .HasMany(u => u.Notifications)
+            .WithOne(n => n.User)
+            .HasForeignKey(n => n.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // RefreshToken configuration
@@ -114,5 +121,20 @@ public class TruweatherDbContext(DbContextOptions<TruweatherDbContext> options)
         builder.Entity<WeatherAlert>()
             .Property(a => a.Threshold)
             .HasPrecision(5, 2);
+
+        // Notification configuration
+        builder.Entity<Notification>()
+            .HasOne(n => n.Alert)
+            .WithMany()
+            .HasForeignKey(n => n.AlertId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<Notification>()
+            .HasIndex(n => n.UserId)
+            .IsUnique(false);
+
+        builder.Entity<Notification>()
+            .HasIndex(n => new { n.UserId, n.IsRead })
+            .IsUnique(false);
     }
 }

@@ -33,6 +33,14 @@
                         <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Settings
                     </NavLink>
                 </div>
+
+                <AuthorizeView Roles="Admin" Context="adminContext">
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="admin">
+                            <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Admin
+                        </NavLink>
+                    </div>
+                </AuthorizeView>
             </Authorized>
             <NotAuthorized>
                 <div class="nav-item px-3">

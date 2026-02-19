@@ -4,13 +4,27 @@ public class AuthServiceTests
 {
     private readonly Mock<UserManager<User>> _mockUserManager;
     private readonly Mock<SignInManager<User>> _mockSignInManager;
+    private readonly Mock<IEmailService> _mockEmailService;
     private readonly IConfiguration _configuration;
 
     public AuthServiceTests()
     {
         _mockUserManager = MockUserManager.Create();
         _mockSignInManager = MockSignInManager.Create(_mockUserManager);
+        _mockEmailService = new Mock<IEmailService>();
         _configuration = TestConfiguration.Create();
+
+        // Setup default email service behavior
+        _mockEmailService.Setup(x => x.SendEmailVerificationAsync(It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(true);
+
+        // Setup default role assignment
+        _mockUserManager.Setup(x => x.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()))
+            .ReturnsAsync(IdentityResult.Success);
+        _mockUserManager.Setup(x => x.GenerateEmailConfirmationTokenAsync(It.IsAny<User>()))
+            .ReturnsAsync("test-verification-token");
+        _mockUserManager.Setup(x => x.GetRolesAsync(It.IsAny<User>()))
+            .ReturnsAsync(new List<string> { "User" });
     }
 
     private AuthService CreateService(TruweatherDbContext context)
@@ -19,7 +33,8 @@ public class AuthServiceTests
             _mockUserManager.Object,
             _mockSignInManager.Object,
             _configuration,
-            context);
+            context,
+            _mockEmailService.Object);
     }
 
     // --- Register Tests ---

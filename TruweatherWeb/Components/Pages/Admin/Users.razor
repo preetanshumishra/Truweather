@@ -1,0 +1,177 @@
+@page "/admin/users"
+@attribute [Authorize(Roles = "Admin")]
+@inject HttpClientWrapper Http
+@rendermode InteractiveServer
+
+<PageTitle>User Management - Truweather</PageTitle>
+
+<h3 class="mb-4">User Management</h3>
+
+<ErrorAlert Message="@_error" OnDismiss="() => _error = null" />
+
+@if (_success != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @_success
+        <button type="button" class="btn-close" @onclick="() => _success = null"></button>
+    </div>
+}
+
+<div class="mb-3">
+    <div class="input-group" style="max-width: 400px;">
+        <input type="text" class="form-control" placeholder="Search by email..."
+               @bind="_searchTerm" @bind:event="oninput" />
+        <button class="btn btn-outline-primary" @onclick="LoadUsers">Search</button>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <LoadingSpinner Message="Loading users..." />
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Verified</th>
+                    <th>Role</th>
+                    <th>Locations</th>
+                    <th>Alerts</th>
+                    <th>Created</th>
+                    <th>Last Login</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in _users)
+                {
+                    <tr>
+                        <td>@user.Email</td>
+                        <td>
+                            @if (user.IsEmailVerified)
+                            {
+                                <span class="badge bg-success">Yes</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">No</span>
+                            }
+                        </td>
+                        <td>
+                            @foreach (var role in user.Roles)
+                            {
+                                <span class="badge @(role == "Admin" ? "bg-danger" : "bg-primary") me-1">@role</span>
+                            }
+                        </td>
+                        <td>@user.SavedLocationCount</td>
+                        <td>@user.AlertCount</td>
+                        <td>@user.CreatedAt.ToString("yyyy-MM-dd")</td>
+                        <td>@(user.LastLoginAt?.ToString("yyyy-MM-dd HH:mm") ?? "Never")</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                @if (user.Roles.Contains("Admin"))
+                                {
+                                    <button class="btn btn-outline-warning" @onclick="@(() => ChangeRole(user.Id, "User"))">
+                                        Demote
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-outline-success" @onclick="@(() => ChangeRole(user.Id, "Admin"))">
+                                        Promote
+                                    </button>
+                                }
+                                <button class="btn btn-outline-danger" @onclick="() => ShowDeleteConfirm(user)">
+                                    Delete
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<ConfirmDialog Visible="_showDeleteConfirm"
+               Title="Delete User"
+               Message="@($"Are you sure you want to delete {_userToDelete?.Email}? This cannot be undone.")"
+               OnConfirm="DeleteUser"
+               OnCancel="() => _showDeleteConfirm = false" />
+
+@code {
+    private List<AdminUserDto> _users = [];
+    private string? _searchTerm;
+    private string? _error;
+    private string? _success;
+    private bool _loading = true;
+    private bool _showDeleteConfirm;
+    private AdminUserDto? _userToDelete;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
+        _loading = true;
+        _error = null;
+
+        try
+        {
+            var url = string.IsNullOrWhiteSpace(_searchTerm)
+                ? "/api/admin/users"
+                : $"/api/admin/users?search={Uri.EscapeDataString(_searchTerm)}";
+            _users = await Http.GetAsync<List<AdminUserDto>>(url);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task ChangeRole(string userId, string role)
+    {
+        try
+        {
+            await Http.PutAsync<object>($"/api/admin/users/{userId}/role", new UpdateRoleRequest(role));
+            _success = $"Role updated to {role}.";
+            await LoadUsers();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    private void ShowDeleteConfirm(AdminUserDto user)
+    {
+        _userToDelete = user;
+        _showDeleteConfirm = true;
+    }
+
+    private async Task DeleteUser()
+    {
+        _showDeleteConfirm = false;
+        if (_userToDelete == null) return;
+
+        try
+        {
+            await Http.DeleteAsync($"/api/admin/users/{_userToDelete.Id}");
+            _success = $"User {_userToDelete.Email} deleted.";
+            await LoadUsers();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+    }
+}

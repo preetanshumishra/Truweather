@@ -1,0 +1,102 @@
+@page "/admin"
+@attribute [Authorize(Roles = "Admin")]
+@inject HttpClientWrapper Http
+@rendermode InteractiveServer
+
+<PageTitle>Admin Dashboard - Truweather</PageTitle>
+
+<h3 class="mb-4">Admin Dashboard</h3>
+
+<ErrorAlert Message="@_error" OnDismiss="() => _error = null" />
+
+@if (_loading)
+{
+    <LoadingSpinner Message="Loading stats..." />
+}
+else if (_stats != null)
+{
+    <div class="row g-4 mb-4">
+        <div class="col-md-4 col-lg-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Users</h5>
+                    <p class="display-6 fw-bold">@_stats.TotalUsers</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Locations</h5>
+                    <p class="display-6 fw-bold">@_stats.TotalLocations</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Alerts</h5>
+                    <p class="display-6 fw-bold">@_stats.TotalAlerts</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Active Alerts</h5>
+                    <p class="display-6 fw-bold text-success">@_stats.ActiveAlerts</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Notifications</h5>
+                    <p class="display-6 fw-bold">@_stats.TotalNotifications</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Unread</h5>
+                    <p class="display-6 fw-bold text-warning">@_stats.UnreadNotifications</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Quick Links</h5>
+                    <a href="/admin/users" class="btn btn-outline-primary me-2">Manage Users</a>
+                    <a href="/admin/alerts" class="btn btn-outline-primary">View Alerts</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private SystemStatsDto? _stats;
+    private string? _error;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _stats = await Http.GetAsync<SystemStatsDto>("/api/admin/stats");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

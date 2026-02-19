@@ -166,6 +166,25 @@ builder.Services.AddHttpClient<OpenMeteoWeatherService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IWeatherService, WeatherService>();
 builder.Services.AddScoped<IPreferencesService, PreferencesService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+
+// Register email service (SendGrid if configured, NoOp otherwise)
+var sendGridApiKey = builder.Configuration["Email:SendGridApiKey"];
+if (!string.IsNullOrEmpty(sendGridApiKey))
+{
+    builder.Services.AddScoped<IEmailService, SendGridEmailService>();
+}
+else
+{
+    builder.Services.AddScoped<IEmailService, NoOpEmailService>();
+}
+
+// Register alert evaluation background service (skip in Testing)
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddHostedService<AlertEvaluationService>();
+}
 
 var app = builder.Build();
 
@@ -174,12 +193,19 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseSerilogRequestLogging();
 
-// Apply migrations automatically (skip in testing - InMemory provider can't run migrations)
+// Apply migrations (skip in testing - InMemory provider can't run migrations)
 if (!app.Environment.IsEnvironment("Testing"))
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<TruweatherDbContext>();
     db.Database.Migrate();
+    await SeedData.InitializeAsync(scope.ServiceProvider);
+}
+else
+{
+    // Seed roles in testing environment (InMemory DB)
+    using var scope = app.Services.CreateScope();
+    await SeedData.InitializeAsync(scope.ServiceProvider);
 }
 
 if (app.Environment.IsDevelopment())

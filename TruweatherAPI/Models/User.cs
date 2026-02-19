@@ -12,5 +12,6 @@ public class User : IdentityUser
     public ICollection<SavedLocation> SavedLocations { get; set; } = [];
     public ICollection<WeatherAlert> WeatherAlerts { get; set; } = [];
     public ICollection<RefreshToken> RefreshTokens { get; set; } = [];
+    public ICollection<Notification> Notifications { get; set; } = [];
     public UserPreferences? UserPreferences { get; set; }
 }

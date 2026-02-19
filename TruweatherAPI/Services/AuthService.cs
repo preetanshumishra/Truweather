@@ -15,12 +15,14 @@ public class AuthService(
     UserManager<User> userManager,
     SignInManager<User> signInManager,
     IConfiguration configuration,
-    TruweatherDbContext context) : IAuthService
+    TruweatherDbContext context,
+    IEmailService emailService) : IAuthService
 {
     private readonly UserManager<User> _userManager = userManager;
     private readonly SignInManager<User> _signInManager = signInManager;
     private readonly IConfiguration _configuration = configuration;
     private readonly TruweatherDbContext _context = context;
+    private readonly IEmailService _emailService = emailService;
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
     {
@@ -43,7 +45,13 @@ public class AuthService(
             return new AuthResponse(false, $"Registration failed: {errors}");
         }
 
-        // Create default user preferences
+        // Assign default "User" role
+        await _userManager.AddToRoleAsync(user, "User");
+
+        // Send verification email
+        var verificationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        await _emailService.SendEmailVerificationAsync(user.Email!, verificationToken);
+
         return new AuthResponse(true, "Registration successful", User: new UserDto(
             user.Id,
             user.Email,
@@ -72,7 +80,7 @@ public class AuthService(
         user.LastLoginAt = DateTime.UtcNow;
         await _userManager.UpdateAsync(user);
 
-        var accessToken = GenerateJwtToken(user);
+        var accessToken = await GenerateJwtTokenAsync(user);
         var refreshToken = GenerateRefreshToken();
 
         // Save refresh token to database
@@ -115,7 +123,7 @@ public class AuthService(
         // Revoke the old token (rotation)
         tokenEntity.IsRevoked = true;
 
-        var newAccessToken = GenerateJwtToken(tokenEntity.User);
+        var newAccessToken = await GenerateJwtTokenAsync(tokenEntity.User);
         var newRefreshToken = GenerateRefreshToken();
 
         var newTokenEntity = new RefreshToken
@@ -152,7 +160,7 @@ public class AuthService(
         return true;
     }
 
-    private string GenerateJwtToken(User user)
+    private async Task<string> GenerateJwtTokenAsync(User user)
     {
         var jwtSettings = _configuration.GetSection("Jwt");
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
@@ -164,6 +172,13 @@ public class AuthService(
             new(ClaimTypes.Email, user.Email ?? string.Empty),
             new(ClaimTypes.Name, user.UserName ?? string.Empty)
         };
+
+        // Add role claims
+        var roles = await _userManager.GetRolesAsync(user);
+        foreach (var role in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
 
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var expires = DateTime.UtcNow.AddMinutes(int.Parse(
@@ -188,4 +203,53 @@ public class AuthService(
         return Convert.ToBase64String(randomNumber);
     }
 
+    public async Task<AuthResponse> VerifyEmailAsync(string email, string token)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+            return new AuthResponse(false, "User not found");
+
+        var result = await _userManager.ConfirmEmailAsync(user, token);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            return new AuthResponse(false, $"Email verification failed: {errors}");
+        }
+
+        user.IsEmailVerified = true;
+        await _userManager.UpdateAsync(user);
+
+        return new AuthResponse(true, "Email verified successfully");
+    }
+
+    public async Task<AuthResponse> ForgotPasswordAsync(string email)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+        {
+            // Don't reveal whether user exists
+            return new AuthResponse(true, "If an account exists, a password reset email has been sent");
+        }
+
+        var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+        await _emailService.SendPasswordResetAsync(email, resetToken);
+
+        return new AuthResponse(true, "If an account exists, a password reset email has been sent");
+    }
+
+    public async Task<AuthResponse> ResetPasswordAsync(string email, string token, string newPassword)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+            return new AuthResponse(false, "Invalid request");
+
+        var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            return new AuthResponse(false, $"Password reset failed: {errors}");
+        }
+
+        return new AuthResponse(true, "Password reset successful");
+    }
 }

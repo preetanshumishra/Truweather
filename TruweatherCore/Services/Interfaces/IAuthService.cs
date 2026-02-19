@@ -27,4 +27,19 @@ public interface IAuthService
     /// Logout user and invalidate tokens.
     /// </summary>
     Task<bool> LogoutAsync(string userId);
+
+    /// <summary>
+    /// Verify user's email with verification token.
+    /// </summary>
+    Task<AuthResponse> VerifyEmailAsync(string email, string token);
+
+    /// <summary>
+    /// Initiate password reset by sending reset email.
+    /// </summary>
+    Task<AuthResponse> ForgotPasswordAsync(string email);
+
+    /// <summary>
+    /// Reset password using token from email.
+    /// </summary>
+    Task<AuthResponse> ResetPasswordAsync(string email, string token, string newPassword);
 }

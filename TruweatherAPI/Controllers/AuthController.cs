@@ -94,6 +94,46 @@ public class AuthController(IAuthService authService, ILogger<AuthController> lo
         return result.Success ? Ok(result) : Unauthorized(result);
     }
 
+    /// <summary>Verify email address with verification token.</summary>
+    /// <param name="request">Email and verification token</param>
+    /// <response code="200">Email verified successfully</response>
+    /// <response code="400">Invalid token or email</response>
+    [HttpPost("verify-email")]
+    [EnableRateLimiting("auth")]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<AuthResponse>> VerifyEmail(VerifyEmailRequest request)
+    {
+        var result = await _authService.VerifyEmailAsync(request.Email, request.Token);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
+    /// <summary>Request a password reset email.</summary>
+    /// <param name="request">Email address</param>
+    /// <response code="200">Reset email sent (or user doesn't exist - same response for security)</response>
+    [HttpPost("forgot-password")]
+    [EnableRateLimiting("auth")]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+    public async Task<ActionResult<AuthResponse>> ForgotPassword(ForgotPasswordRequest request)
+    {
+        var result = await _authService.ForgotPasswordAsync(request.Email);
+        return Ok(result);
+    }
+
+    /// <summary>Reset password using token from email.</summary>
+    /// <param name="request">Email, token, new password</param>
+    /// <response code="200">Password reset successful</response>
+    /// <response code="400">Invalid token or weak password</response>
+    [HttpPost("reset-password")]
+    [EnableRateLimiting("auth")]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<AuthResponse>> ResetPassword(ResetPasswordRequest request)
+    {
+        var result = await _authService.ResetPasswordAsync(request.Email, request.Token, request.NewPassword);
+        return result.Success ? Ok(result) : BadRequest(result);
+    }
+
     /// <summary>Log out the current user and invalidate their refresh token.</summary>
     /// <remarks>
     /// Requires valid JWT access token in Authorization header.

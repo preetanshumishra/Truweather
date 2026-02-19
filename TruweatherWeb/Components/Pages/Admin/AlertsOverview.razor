@@ -1,0 +1,115 @@
+@page "/admin/alerts"
+@attribute [Authorize(Roles = "Admin")]
+@inject HttpClientWrapper Http
+@rendermode InteractiveServer
+
+<PageTitle>Alerts Overview - Truweather</PageTitle>
+
+<h3 class="mb-4">Alerts Overview</h3>
+
+<ErrorAlert Message="@_error" OnDismiss="() => _error = null" />
+
+@if (_loading)
+{
+    <LoadingSpinner Message="Loading alerts..." />
+}
+else
+{
+    <div class="mb-3">
+        <div class="btn-group" role="group">
+            <button class="btn @(_filter == "all" ? "btn-primary" : "btn-outline-primary")"
+                    @onclick='() => SetFilter("all")'>All (@_alerts.Count)</button>
+            <button class="btn @(_filter == "active" ? "btn-primary" : "btn-outline-primary")"
+                    @onclick='() => SetFilter("active")'>Active (@_alerts.Count(a => a.IsEnabled))</button>
+            <button class="btn @(_filter == "triggered" ? "btn-primary" : "btn-outline-primary")"
+                    @onclick='() => SetFilter("triggered")'>Triggered (@_alerts.Count(a => a.IsNotified))</button>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Location</th>
+                    <th>Type</th>
+                    <th>Condition</th>
+                    <th>Threshold</th>
+                    <th>Enabled</th>
+                    <th>Triggered</th>
+                    <th>Last Triggered</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var alert in FilteredAlerts)
+                {
+                    <tr class="@(alert.IsNotified ? "table-warning" : "")">
+                        <td>@alert.Id</td>
+                        <td>@alert.UserEmail</td>
+                        <td>@alert.LocationName</td>
+                        <td>@alert.AlertType</td>
+                        <td>@alert.Condition</td>
+                        <td>@alert.Threshold</td>
+                        <td>
+                            @if (alert.IsEnabled)
+                            {
+                                <span class="badge bg-success">Yes</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">No</span>
+                            }
+                        </td>
+                        <td>
+                            @if (alert.IsNotified)
+                            {
+                                <span class="badge bg-warning text-dark">Yes</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">No</span>
+                            }
+                        </td>
+                        <td>@(alert.LastTriggeredAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private List<AdminAlertDto> _alerts = [];
+    private string? _error;
+    private bool _loading = true;
+    private string _filter = "all";
+
+    private IEnumerable<AdminAlertDto> FilteredAlerts => _filter switch
+    {
+        "active" => _alerts.Where(a => a.IsEnabled),
+        "triggered" => _alerts.Where(a => a.IsNotified),
+        _ => _alerts
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _alerts = await Http.GetAsync<List<AdminAlertDto>>("/api/admin/alerts");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void SetFilter(string filter)
+    {
+        _filter = filter;
+    }
+}
